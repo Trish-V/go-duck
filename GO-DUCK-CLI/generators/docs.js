@@ -65,7 +65,7 @@ export const generateDocumentation = async (config, entities, outputDir, enums =
 
     const files = await fs.readdir(templatesDir);
     for (const file of files) {
-        if (file.endsWith('.png')) {
+        if (file.endsWith('.png') || file.endsWith('.mp4')) {
             await fs.copy(path.join(templatesDir, file), path.join(docsDir, file));
         }
     }

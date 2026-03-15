@@ -94,10 +94,25 @@
         <div class="absolute bottom-0 left-0 w-[30rem] h-[30rem] bg-purple-50/50 rounded-full blur-[100px] -ml-32 -mb-32"></div>
 
         <div class="relative z-10">
-            <h2 class="text-4xl font-extrabold text-slate-900 mb-12 flex items-center tracking-tight">
+            <h2 class="text-4xl font-extrabold text-slate-900 mb-6 flex items-center tracking-tight">
                 <span class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-orange-400 to-rose-400 text-white flex items-center justify-center mr-5 shadow-lg animate-pulse">🦆</span>
                 The Legend of the Century
             </h2>
+
+            <!-- Cinematic Introduction -->
+            <div class="mb-16 relative group">
+                <div class="absolute -inset-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-[2rem] blur opacity-15 group-hover:opacity-25 transition duration-1000"></div>
+                <div class="relative bg-black rounded-[1.5rem] overflow-hidden shadow-2xl border border-white/10 aspect-video">
+                    <video controls class="w-full h-full object-cover">
+                        <source src="intro.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <div class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent pointer-events-none">
+                        <span class="text-white/70 text-sm font-medium tracking-widest uppercase">Cinematic Introduction</span>
+                        <h4 class="text-white text-xl font-bold">The Trailer of the Epic</h4>
+                    </div>
+                </div>
+            </div>
             
             <div class="space-y-16">
                 <!-- Chapter 1 -->
