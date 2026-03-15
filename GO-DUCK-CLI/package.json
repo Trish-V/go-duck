@@ -1,6 +1,6 @@
 {
   "name": "go-duck-cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "go function generator",
   "main": "index.js",
   "type": "module",
