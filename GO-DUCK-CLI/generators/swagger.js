@@ -18,6 +18,19 @@ export const generateSwaggerDocs = async (config, entities, outputDir) => {
         ],
         paths: {},
         components: {
+            securitySchemes: {
+                BearerAuth: {
+                    type: 'http',
+                    scheme: 'bearer',
+                    bearerFormat: 'JWT'
+                },
+                TenantID: {
+                    type: 'apiKey',
+                    in: 'header',
+                    name: 'X-Tenant-ID',
+                    description: 'The unique identifier for the tenant dashboard context'
+                }
+            },
             schemas: {
                 Error: {
                     type: 'object',
@@ -26,8 +39,15 @@ export const generateSwaggerDocs = async (config, entities, outputDir) => {
                     }
                 }
             }
-        }
+        },
+        security: [
+            { BearerAuth: [], TenantID: [] }
+        ]
     };
+
+    const commonHeaders = [
+        { name: 'X-Tenant-ID', in: 'header', required: true, schema: { type: 'string', default: 'default' }, description: 'Multi-tenancy context identifier' }
+    ];
 
     // 1. Add Entity Paths
     for (const entity of entities) {
@@ -53,6 +73,7 @@ export const generateSwaggerDocs = async (config, entities, outputDir) => {
             post: {
                 tags: [capitalized],
                 summary: `Create a new ${capitalized}`,
+                parameters: [...commonHeaders],
                 requestBody: {
                     required: true,
                     content: { 'application/json': { schema: { $ref: `#/components/schemas/${capitalized}` } } }
@@ -65,9 +86,10 @@ export const generateSwaggerDocs = async (config, entities, outputDir) => {
                 tags: [capitalized],
                 summary: `Get all ${capitalized}s`,
                 parameters: [
-                    { name: 'page', in: 'query', schema: { type: 'integer' } },
-                    { name: 'size', in: 'query', schema: { type: 'integer' } },
-                    { name: 'eager', in: 'query', schema: { type: 'boolean' } }
+                    ...commonHeaders,
+                    { name: 'page', in: 'query', schema: { type: 'integer' }, description: 'Zero-based page index' },
+                    { name: 'size', in: 'query', schema: { type: 'integer' }, description: 'Records per page' },
+                    { name: 'eager', in: 'query', schema: { type: 'boolean' }, description: 'If true, performs SQL Join to fetch relations' }
                 ],
                 responses: {
                     200: { description: 'OK', content: { 'application/json': { schema: { type: 'array', items: { $ref: `#/components/schemas/${capitalized}` } } } } }
@@ -80,7 +102,11 @@ export const generateSwaggerDocs = async (config, entities, outputDir) => {
             get: {
                 tags: [capitalized],
                 summary: `Get ${capitalized} by ID`,
-                parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
+                parameters: [
+                    ...commonHeaders,
+                    { name: 'id', in: 'path', required: true, schema: { type: 'integer' } },
+                    { name: 'eager', in: 'query', schema: { type: 'boolean' } }
+                ],
                 responses: {
                     200: { description: 'OK', content: { 'application/json': { schema: { $ref: `#/components/schemas/${capitalized}` } } } }
                 }
@@ -88,7 +114,7 @@ export const generateSwaggerDocs = async (config, entities, outputDir) => {
             put: {
                 tags: [capitalized],
                 summary: `Update ${capitalized}`,
-                parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
+                parameters: [...commonHeaders, { name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
                 responses: {
                     200: { description: 'Updated', content: { 'application/json': { schema: { $ref: `#/components/schemas/${capitalized}` } } } }
                 }
@@ -96,9 +122,62 @@ export const generateSwaggerDocs = async (config, entities, outputDir) => {
             delete: {
                 tags: [capitalized],
                 summary: `Delete ${capitalized}`,
-                parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
+                parameters: [...commonHeaders, { name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
                 responses: {
                     204: { description: 'No Content' }
+                }
+            }
+        };
+
+        // BULK Operations /entities/bulk
+        swagger.paths[`/${name}s/bulk`] = {
+            post: {
+                tags: [capitalized],
+                summary: `Bulk Create ${capitalized}s`,
+                parameters: [...commonHeaders],
+                requestBody: {
+                    required: true,
+                    content: { 'application/json': { schema: { type: 'array', items: { $ref: `#/components/schemas/${capitalized}` } } } }
+                },
+                responses: {
+                    201: { description: 'Created', content: { 'application/json': { schema: { type: 'array', items: { $ref: `#/components/schemas/${capitalized}` } } } } }
+                }
+            },
+            put: {
+                tags: [capitalized],
+                summary: `Bulk Update ${capitalized}s`,
+                parameters: [...commonHeaders],
+                requestBody: {
+                    required: true,
+                    content: { 'application/json': { schema: { type: 'array', items: { $ref: `#/components/schemas/${capitalized}` } } } }
+                },
+                responses: {
+                    200: { description: 'Updated', content: { 'application/json': { schema: { type: 'array', items: { $ref: `#/components/schemas/${capitalized}` } } } } }
+                }
+            },
+            patch: {
+                tags: [capitalized],
+                summary: `Bulk Patch ${capitalized}s`,
+                parameters: [...commonHeaders],
+                requestBody: {
+                    required: true,
+                    content: { 
+                        'application/json': { 
+                            schema: { 
+                                type: 'array', 
+                                items: { 
+                                    type: 'object',
+                                    properties: {
+                                        id: { type: 'integer' },
+                                        changes: { type: 'object' }
+                                    }
+                                } 
+                            } 
+                        } 
+                    }
+                },
+                responses: {
+                    200: { description: 'Patched' }
                 }
             }
         };
@@ -107,21 +186,41 @@ export const generateSwaggerDocs = async (config, entities, outputDir) => {
     // 2. Add System Paths
     swagger.paths['/rpc/{table}'] = {
         get: {
-            tags: ['Search'],
-            summary: 'Generic PostgREST-like Search',
+            tags: ['Search Engine'],
+            summary: 'Generic PostgREST RPC Engine',
+            description: `Powerful dynamic querying system. 
+            
+            ### Dynamic Filtering
+            Append any column name as a query parameter using operator notation:
+            - \`?age=gt.20\` (Greater Than)
+            - \`?name=ilike.John\` (Case-insensitive search)
+            - \`?id=in.1,2,3\` (Set containment)
+            
+            ### JSONB Path Querying
+            For JSON fields, use arrow notation:
+            - \`?metadata->>role=eq.ADMIN\` (Nested text extraction)
+            - \`?details->count=gt.5\` (Nested numeric extraction)`,
             parameters: [
-                { name: 'table', in: 'path', required: true, schema: { type: 'string' } },
-                { name: 'order', in: 'query', schema: { type: 'string' } },
-                { name: 'limit', in: 'query', schema: { type: 'integer' } }
+                ...commonHeaders,
+                { name: 'table', in: 'path', required: true, schema: { type: 'string' }, description: 'The database table to query' },
+                { name: 'order', in: 'query', schema: { type: 'string' }, description: 'Sorting (e.g., id.desc)' },
+                { name: 'limit', in: 'query', schema: { type: 'integer' }, description: 'Row limit' },
+                { name: 'offset', in: 'query', schema: { type: 'integer' }, description: 'Query offset' }
             ],
-            responses: { 200: { description: 'OK' } }
+            responses: { 
+                200: { 
+                    description: 'OK', 
+                    content: { 'application/json': { schema: { type: 'array', items: { type: 'object' } } } } 
+                } 
+            }
         }
     };
 
     swagger.paths['/audit'] = {
         get: {
-            tags: ['Audit'],
-            summary: 'View Audit Logs',
+            tags: ['Observability'],
+            summary: 'Fetch Audit Trail',
+            parameters: [...commonHeaders],
             responses: { 200: { description: 'OK' } }
         }
     };
@@ -139,7 +238,10 @@ const mapToSwaggerType = (type) => {
         'Long': 'integer',
         'BigDecimal': 'number',
         'LocalDate': 'string',
-        'Instant': 'string'
+        'Instant': 'string',
+        'JSON': 'object',
+        'JSONB': 'object',
+        'Text': 'string'
     };
     return types[type] || 'string';
 };

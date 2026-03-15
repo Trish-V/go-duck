@@ -124,6 +124,84 @@
             </div>
         </div>
     </div>
+
+    <!-- JSON Querying Section -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
+        <h4 class="text-xl font-bold text-slate-900 mb-4 flex items-center">
+            <svg class="w-6 h-6 mr-3 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+            Deep JSON/JSONB Querying
+        </h4>
+        <p class="text-slate-600 text-sm mb-6 leading-relaxed">
+            The GO-DUCK generator natively supports PostgreSQL JSONB operators. You can drill down into nested fields directly from the URL using arrow notation.
+        </p>
+        
+        <div class="space-y-4">
+            <div class="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold text-indigo-600 uppercase tracking-widest">Text Extraction (->>)</span>
+                    <span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 text-[10px] font-bold">Standard Use</span>
+                </div>
+                <code class="text-xs text-slate-800">GET /api/rpc/users?metadata->>role=eq.ADMIN</code>
+                <p class="text-[11px] text-slate-500 mt-2">Extracts the value as text. Perfect for equality checks on nested strings.</p>
+            </div>
+
+            <div class="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold text-purple-600 uppercase tracking-widest">Object Extraction (->)</span>
+                </div>
+                <code class="text-xs text-slate-800">GET /api/rpc/orders?details->itemsCount=gt.5</code>
+                <p class="text-[11px] text-slate-500 mt-2">Treats the extracted value as a JSON object/numeric, allowing for range checks on nested numbers.</p>
+            </div>
+        </div>
+
+        <div class="mt-6 p-4 bg-amber-50 rounded-xl border border-amber-100">
+            <p class="text-[11px] text-amber-800 leading-relaxed">
+                <strong>Pro Tip:</strong> For high-performance JSON querying, ensure you have a <code>GIN</code> index on the JSONB column in your database.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="mb-12">
+    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+        <span class="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center mr-3 text-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        </span>
+        Bulk Mission Control (High Velocity)
+    </h2>
+    <p class="text-slate-600 text-sm mb-6 leading-relaxed">
+        For batch processing and migrations, avoid the overhead of multiple HTTP calls. Use the specialized <code class="bg-orange-50 px-1 rounded text-orange-700">/bulk</code> endpoints to process hundreds of records in a single transaction.
+    </p>
+
+    <div class="space-y-6">
+        <!-- Bulk Create -->
+        <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+            <div class="bg-slate-50 px-6 py-3 border-b border-slate-200 flex items-center justify-between">
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Bulk Create Transaction</span>
+                <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[10px] font-bold">POST /api/:entities/bulk</span>
+            </div>
+            <div class="p-6">
+                <pre class="bg-slate-900 rounded-xl p-4 text-xs text-slate-300 font-mono">[
+  { "title": "Bulk Article A", "status": "DRAFT" },
+  { "title": "Bulk Article B", "status": "PUBLISHED" }
+]</pre>
+            </div>
+        </div>
+
+        <!-- Bulk Patch -->
+        <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+            <div class="bg-slate-50 px-6 py-3 border-b border-slate-200 flex items-center justify-between">
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Multi-Entity Patch</span>
+                <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[10px] font-bold">PATCH /api/:entities/bulk</span>
+            </div>
+            <div class="p-6">
+                <pre class="bg-slate-900 rounded-xl p-4 text-xs text-slate-300 font-mono">[
+  { "id": 1, "changes": { "status": "ARCHIVED" } },
+  { "id": 2, "changes": { "title": "Updated Title via Bulk" } }
+]</pre>
+            </div>
+        </div>
+    </div>
 </section>
 
 <section class="mb-12">

@@ -111,21 +111,21 @@ func (d *RESToverWSDispatcher) dispatch(ctx context.Context, conn *websocket.Con
 	tp := carrier.Get("traceparent")
 
 	switch msg.Action {
-	case "GET_CARS":
-		var listCar []map[string]interface{}
+	case "GET_ARTICLES":
+		var listArticle []map[string]interface{}
 		// Note: In a production app, we'd use gorm statement timeout and tracing hooks
-		d.DB.WithContext(ctx).Table("car").Find(&listCar)
-		d.sendResponse(conn, msg.Action, listCar, tp)
-    case "CREATE_CAR":
-        d.sendResponse(conn, msg.Action, "Car creation processing...", tp)
+		d.DB.WithContext(ctx).Table("article").Find(&listArticle)
+		d.sendResponse(conn, msg.Action, listArticle, tp)
+    case "CREATE_ARTICLE":
+        d.sendResponse(conn, msg.Action, "Article creation processing...", tp)
     
-	case "GET_PERSONS":
-		var listPerson []map[string]interface{}
+	case "GET_AUTHORS":
+		var listAuthor []map[string]interface{}
 		// Note: In a production app, we'd use gorm statement timeout and tracing hooks
-		d.DB.WithContext(ctx).Table("person").Find(&listPerson)
-		d.sendResponse(conn, msg.Action, listPerson, tp)
-    case "CREATE_PERSON":
-        d.sendResponse(conn, msg.Action, "Person creation processing...", tp)
+		d.DB.WithContext(ctx).Table("author").Find(&listAuthor)
+		d.sendResponse(conn, msg.Action, listAuthor, tp)
+    case "CREATE_AUTHOR":
+        d.sendResponse(conn, msg.Action, "Author creation processing...", tp)
     default:
 		d.sendError(conn, "Unknown action", msg.Action, tp)
 	}

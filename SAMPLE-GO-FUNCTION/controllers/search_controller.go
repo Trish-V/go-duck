@@ -27,11 +27,30 @@ func (sc *SearchController) GenericSearch(c *gin.Context) {
 			continue
 		}
 
+		// Security: Basic Sanitization for Key (Allowing letters, numbers, _, -, and JSON arrows)
+		// We split the key if it contains JSON operators to handle them specifically
+		processedKey := key
+		if strings.Contains(key, "->") {
+			parts := strings.SplitN(key, "->", 2)
+			column := parts[0]
+			path := parts[1]
+			operator := "->"
+			if strings.HasPrefix(path, ">") {
+				operator = "->>"
+				path = path[1:]
+			}
+			// Wrap column in quotes and path in single quotes for Postgres JSONB safety
+			processedKey = fmt.Sprintf(""%s"%s'%s'", column, operator, path)
+		} else {
+			// Standard column: Wrap in quotes for safety
+			processedKey = fmt.Sprintf(""%s"", key)
+		}
+
 		for _, val := range values {
 			parts := strings.SplitN(val, ".", 2)
 			if len(parts) < 2 {
 				// Default to equality
-				query = query.Where(fmt.Sprintf("%s = ?", key), val)
+				query = query.Where(processedKey+" = ?", val)
 				continue
 			}
 
@@ -40,24 +59,27 @@ func (sc *SearchController) GenericSearch(c *gin.Context) {
 
 			switch op {
 			case "eq":
-				query = query.Where(fmt.Sprintf("%s = ?", key), target)
+				query = query.Where(processedKey+" = ?", target)
 			case "neq":
-				query = query.Where(fmt.Sprintf("%s <> ?", key), target)
+				query = query.Where(processedKey+" <> ?", target)
 			case "gt":
-				query = query.Where(fmt.Sprintf("%s > ?", key), target)
+				query = query.Where(processedKey+" > ?", target)
 			case "gte":
-				query = query.Where(fmt.Sprintf("%s >= ?", key), target)
+				query = query.Where(processedKey+" >= ?", target)
 			case "lt":
-				query = query.Where(fmt.Sprintf("%s < ?", key), target)
+				query = query.Where(processedKey+" < ?", target)
 			case "lte":
-				query = query.Where(fmt.Sprintf("%s <= ?", key), target)
+				query = query.Where(processedKey+" <= ?", target)
 			case "like":
-				query = query.Where(fmt.Sprintf("%s LIKE ?", key), "%"+target+"%")
+				query = query.Where(processedKey+" LIKE ?", "%"+target+"%")
 			case "ilike":
-				query = query.Where(fmt.Sprintf("%s ILIKE ?", key), "%"+target+"%")
+				query = query.Where(processedKey+" ILIKE ?", "%"+target+"%")
 			case "in":
 				list := strings.Split(target, ",")
-				query = query.Where(fmt.Sprintf("%s IN ?", key), list)
+				query = query.Where(processedKey+" IN ?", list)
+			default:
+				// Fallback to equality if operator is unrecognized
+				query = query.Where(processedKey+" = ?", val)
 			}
 		}
 	}

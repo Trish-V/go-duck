@@ -201,6 +201,104 @@ return nil, nil
 c.JSON(http.StatusOK, gin.H{"message": "Updated successfully", "data": entity})
 }
 
+// BulkCreate handles creating multiple entities in one transaction
+func (ctrl *ArticleController) BulkCreate(c *gin.Context) {
+	tenant, _ := c.Get("tenantDB")
+	tenantStr := fmt.Sprintf("%v", tenant)
+	ctx := c.Request.Context()
+
+	var entities []models.Article
+	if err := c.ShouldBindJSON(&entities); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := ctrl.DB.WithContext(ctx).Create(&entities).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Dynamic Cache Invalidation (Tenant Aware)
+	cache.ClearPattern(tenantStr + ":Article*")
+
+	// MQTT Event (Resilient)
+	resilience.Execute(func() (interface{}, error) {
+		messaging.PublishEvent(ctrl.Config.GoDuck.Messaging.MQTT.TopicPrefix, "BULK_CREATE", "Article", entities, nil)
+		return nil, nil
+	})
+
+	c.JSON(http.StatusCreated, entities)
+}
+
+// BulkUpdate handles updating multiple entities in one transaction
+func (ctrl *ArticleController) BulkUpdate(c *gin.Context) {
+	tenant, _ := c.Get("tenantDB")
+	tenantStr := fmt.Sprintf("%v", tenant)
+	ctx := c.Request.Context()
+
+	var entities []models.Article
+	if err := c.ShouldBindJSON(&entities); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := ctrl.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		for _, e := range entities {
+			if err := tx.Save(&e).Error; err != nil {
+				return err
+			}
+			cache.Delete(fmt.Sprintf("%s:Article:%d", tenantStr, e.ID))
+		}
+		return nil
+	})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// MQTT Event (Resilient)
+	resilience.Execute(func() (interface{}, error) {
+		messaging.PublishEvent(ctrl.Config.GoDuck.Messaging.MQTT.TopicPrefix, "BULK_UPDATE", "Article", entities, nil)
+		return nil, nil
+	})
+
+	c.JSON(http.StatusOK, entities)
+}
+
+// BulkPatch handles partial updates for multiple entities
+func (ctrl *ArticleController) BulkPatch(c *gin.Context) {
+	tenant, _ := c.Get("tenantDB")
+	tenantStr := fmt.Sprintf("%v", tenant)
+	ctx := c.Request.Context()
+
+	var updates []struct {
+		ID      uint                   `json:"id"`
+		Changes map[string]interface{} `json:"changes"`
+	}
+	if err := c.ShouldBindJSON(&updates); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := ctrl.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		for _, u := range updates {
+			if err := tx.Model(&models.Article{}).Where("id = ?", u.ID).Updates(u.Changes).Error; err != nil {
+				return err
+			}
+			cache.Delete(fmt.Sprintf("%s:Article:%d", tenantStr, u.ID))
+		}
+		return nil
+	})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Bulk patch completed successfully"})
+}
+
 // Delete
 func (ctrl *ArticleController) Delete(c *gin.Context) {
 id := c.Param("id")

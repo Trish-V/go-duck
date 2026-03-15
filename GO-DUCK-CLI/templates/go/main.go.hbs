@@ -163,10 +163,13 @@ api.GET("/rpc/:table", searchCtrl.GenericSearch)
 // {{name}} Routes
 {{toLowerCase name}}Ctrl := controllers.{{capitalize name}}Controller{DB: masterDB, Config: appConfig}
 api.POST("/{{toLowerCase name}}s", {{toLowerCase name}}Ctrl.Create)
+api.POST("/{{toLowerCase name}}s/bulk", {{toLowerCase name}}Ctrl.BulkCreate)
 api.GET("/{{toLowerCase name}}s", {{toLowerCase name}}Ctrl.GetAll)
 api.GET("/{{toLowerCase name}}s/:id", {{toLowerCase name}}Ctrl.GetByID)
 api.PUT("/{{toLowerCase name}}s/:id", {{toLowerCase name}}Ctrl.Update)
+api.PUT("/{{toLowerCase name}}s/bulk", {{toLowerCase name}}Ctrl.BulkUpdate)
 api.PATCH("/{{toLowerCase name}}s/:id", {{toLowerCase name}}Ctrl.Patch)
+api.PATCH("/{{toLowerCase name}}s/bulk", {{toLowerCase name}}Ctrl.BulkPatch)
 api.DELETE("/{{toLowerCase name}}s/:id", {{toLowerCase name}}Ctrl.Delete)
 {{/each}}
 // go-duck-needle-add-route
