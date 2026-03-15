@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>go-duck - Security &amp; Auth</title>
+    <title>go-duck - Multi-Tenancy</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css">
@@ -57,7 +57,7 @@
                 <li><a href="audit.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">Audit & Metering</a></li>
                 
                 <li class="pt-5 pb-1 px-3"><span class="font-bold text-slate-900 uppercase text-[10px] tracking-widest">4. Infrastructure</span></li>
-                <li><a href="security.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 bg-white shadow-sm ring-1 ring-slate-200 text-indigo-700">Security & Resilience</a></li>
+                <li><a href="security.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">Security & Resilience</a></li>
                 <li><a href="observability.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">Observability</a></li>
                 
                 <li class="pt-5 pb-1 px-3"><span class="font-bold text-slate-900 uppercase text-[10px] tracking-widest">5. References</span></li>
@@ -73,56 +73,88 @@
                 
                 <!-- Content injected here (raised z-index) -->
                 <div class="relative z-10">
-                    <h1 class="text-4xl font-extrabold text-gray-900 mb-4">Security & Resilience</h1>
-<p class="text-lg text-gray-600 mb-8">Out-of-the-box infrastructure protecting your core microservices.</p>
-
-<section class="mb-10">
-    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">1. Identity & Access Management (OIDC)</h2>
-    <p class="mb-4">GO-DUCK generated apps utilize strict Keycloak JWT Authorization. No entity router functions without traversing the <code>jwtAuthMiddleware</code> and extracting structural properties of the connected user from the signed payload utilizing the pre-configured realm secret.</p>
-    
-    <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6 rounded-r">
-        <p class="text-indigo-900"><strong>Golden Rule:</strong> In <code>application-dev.yml</code>, ensure your Keycloak Realm, ClientID, and Secret are accurately synced with the local running Docker Keycloak image.</p>
+                    <div class="mb-10 text-center lg:text-left border-b border-slate-200 pb-8">
+    <div class="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold tracking-wide uppercase mb-4">
+        Enterprise Architecture
     </div>
+    <h1 class="text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight mb-4">Dynamic Multi-Tenancy</h1>
+    <p class="text-lg lg:text-xl text-slate-600 max-w-2xl leading-relaxed">Secure, high-performance database-per-tenant isolation with real-time connection hot-swapping.</p>
+</div>
 
-    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">2. Tenant Context Integrity</h2>
-    <p class="mb-4">
-        GO-DUCK implements <strong>Enterprise-Grade Data Isolation</strong>. While the <code>X-Tenant-ID</code> header is required for request context, the system is immune to "Tenant Spoofing" attacks.
-    </p>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
-            <h4 class="font-bold text-slate-900 mb-2">Internal Cross-Verification</h4>
-            <p class="text-xs text-slate-600 leading-relaxed">
-                The <code>TenantMiddleware</code> extracts authorized roles from the signed JWT and performs a server-side lookup of the valid DB context. It then <strong>cross-checks</strong> this against the <code>X-Tenant-ID</code> header.
-            </p>
+<section class="mb-12">
+    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+        <span class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center mr-3 text-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+        </span>
+        The Dual-DB Architecture
+    </h2>
+    <p class="mb-6 text-slate-600 leading-relaxed">GO-DUCK separates management logic from customer data. Your application maintains a persistent connection to a <strong>Master Database</strong> while dynamically "Relocating" per-request traffic to isolated <strong>Tenant Databases</strong>.</p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <div class="p-6 rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 mb-2">Master Registry</h3>
+            <p class="text-slate-600 text-sm leading-relaxed">The <code>tenant_roles</code> table in the Master DB acts as the "Grand Concierge," mapping authenticated user roles to physical database names at runtime.</p>
         </div>
-        <div class="bg-rose-50 p-5 rounded-xl border border-rose-200">
-            <h4 class="font-bold text-rose-900 mb-2">Spoof Protection</h4>
-            <p class="text-xs text-rose-700 leading-relaxed">
-                If a user attempts to access <code>Tenant-B</code> by modifying headers while their JWT is only valid for <code>Tenant-A</code>, the request is immediately aborted with a <code>403 Forbidden - Security Breach</code> error. 
-                <a href="multitenancy.html" class="text-rose-600 font-bold hover:underline mt-2 inline-block">Learn more about isolation &rarr;</a>
-            </p>
+        <div class="p-6 rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div class="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 mb-2">Hot-Swapping Pools</h3>
+            <p class="text-slate-600 text-sm leading-relaxed">The <code>TenantDBManager</code> uses lazy loading to open and cache connection pools for tenants only when they are active, ensuring minimal resource overhead.</p>
         </div>
     </div>
-
-    <h3 class="font-semibold mb-2 mt-6">3. Burst Protection (Rate Limiting)</h3>
-    <p class="mb-4">Using the standard <code>x/time/rate</code> package, a Token Bucket rate limiter is attached to the Gin Engine globally to mitigate DDOS vectors and abusive scripting.</p>
-    <pre><code class="language-yaml"># Inside your application-prod.yml
-go-duck:
-  security:
-    rate-limit:
-      rps: 150.0  # Allow up to 150 Req/Sec
-      burst: 300  # Burstable tokens
-</code></pre>
 </section>
 
-<section class="mb-10">
-    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">3. Sony/go-breaker (Circuit Breakers)</h2>
-    <p class="mb-4">When a Microservice starts rejecting requests globally due to a failing dependent macro-service (e.g. Redis node goes down / DB locks / MQTT broker drops), your application handles this gracefully by "tripping" an open Circuit Breaker to prevent Request Queue Pile-ups.</p>
+<section class="mb-12">
+    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+        <span class="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center mr-3 text-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+        </span>
+        Security & Anti-Spoofing
+    </h2>
+    <p class="mb-6 text-slate-600 leading-relaxed">Header-based tenancy (<code>X-Tenant-ID</code>) is convenient but dangerous. GO-DUCK solves this by cryptographically validating the tenant context against the JWT.</p>
     
-    <pre><code class="language-go">resilience.Execute(func() (interface{}, error) {
-    // Risky Network / DB Operations wrapped automatically!
-    return s.repo.DB.First(&entity, req.Id).Error
-})</code></pre>
+    <div class="bg-slate-900 rounded-2xl p-6 shadow-xl mb-6">
+        <h4 class="text-emerald-400 font-mono text-sm mb-4">// Internal Verification Loop</h4>
+        <pre class="text-slate-300 font-mono text-sm leading-relaxed">
+1. Extract Roles from signed Keycloak JWT
+2. Lookup authorized DB in Master mapping table
+3. Compare against X-Tenant-ID header
+4. If Mismatch: Return 403 Forbidden (Security Breach)
+5. If Match: Activate Dynamic Connection Pool
+        </pre>
+    </div>
+</section>
+
+<section class="mb-12">
+    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+        <span class="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center mr-3 text-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+        </span>
+        Tenant Provisioning API
+    </h2>
+    <p class="mb-6 text-slate-600 leading-relaxed">Adding a new customer is a single atomic operation. Use the management API to provision a side-by-side database instantly.</p>
+
+    <div class="bg-[#1e1e1e] rounded-xl overflow-hidden shadow-lg mb-4">
+        <div class="bg-[#2d2d2d] px-4 py-2 border-b border-[#404040] flex items-center">
+            <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-bold mr-3">POST</span>
+            <span class="text-xs text-slate-300 font-mono">/management/db/create</span>
+        </div>
+        <div class="p-5 text-sm font-mono text-slate-300">
+            {
+                "role": "ROLE_ACME_CORP",
+                "db_name": "acme_isolated_db"
+            }
+        </div>
+    </div>
+    <ul class="space-y-3 text-slate-600 text-sm">
+        <li class="flex items-center"><svg class="w-4 h-4 text-emerald-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Executing physical <code>CREATE DATABASE</code></li>
+        <li class="flex items-center"><svg class="w-4 h-4 text-emerald-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Mapping role to DB in <code>tenant_roles</code> Master table</li>
+        <li class="flex items-center"><svg class="w-4 h-4 text-emerald-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Triggering automated Liquibase migrations on new DB</li>
+    </ul>
 </section>
 
                 </div>
