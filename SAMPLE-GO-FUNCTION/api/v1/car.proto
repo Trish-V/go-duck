@@ -42,8 +42,9 @@ message Car {
   string name = 2;
   string model = 3;
   int32 year = 4;
-  float price = 5;
+  double price = 5;
   string color = 6;
+  string features = 7;
   google.protobuf.Timestamp created_at = 100;
   google.protobuf.Timestamp updated_at = 101;
 }
@@ -52,8 +53,9 @@ message CreateCarRequest {
   string name = 1;
   string model = 2;
   int32 year = 3;
-  float price = 4;
+  double price = 4;
   string color = 5;
+  string features = 6;
 }
 
 message UpdateCarRequest {
@@ -61,8 +63,9 @@ message UpdateCarRequest {
   string name = 2;
   string model = 3;
   int32 year = 4;
-  float price = 5;
+  double price = 5;
   string color = 6;
+  string features = 7;
 }
 
 message DeleteCarRequest {

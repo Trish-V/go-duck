@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>go-duck - CLI &amp; Code Injection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased">
+    <nav class="bg-indigo-600 text-white shadow-lg fixed w-full z-10 top-0 h-16 flex items-center px-6">
+        <div class="text-xl font-bold">go-duck <span class="text-indigo-200 text-sm font-normal">Developer Guide</span></div>
+    </nav>
+
+    <div class="flex max-w-8xl mx-auto pt-16">
+        <aside class="w-64 fixed h-full overflow-y-auto bg-white border-r border-gray-200 p-6 hidden md:block pb-24">
+            <h3 class="font-bold text-gray-400 uppercase text-xs tracking-wider mb-4">Table of Contents</h3>
+            <ul class="space-y-2">
+                <li><a href="index.html" class="text-gray-600 hover:text-indigo-600  block">Home & Quick Start</a></li>
+                <li class="pt-2 pb-1"><span class="font-semibold text-gray-800">1. Core Concepts</span></li>
+                <li><a href="gdl.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">GDL & Framework</a></li>
+                <li><a href="cli.html" class="text-gray-600 hover:text-indigo-600 pl-4 block font-bold text-indigo-600">CLI & Code Injection</a></li>
+                <li class="pt-2 pb-1"><span class="font-semibold text-gray-800">2. APIs</span></li>
+                <li><a href="rest.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">REST & Generic Search</a></li>
+                <li><a href="graphql.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">GraphQL Integration</a></li>
+                <li><a href="grpc.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">Secured gRPC (Kratos)</a></li>
+                <li class="pt-2 pb-1"><span class="font-semibold text-gray-800">3. Real-Time & Audit</span></li>
+                <li><a href="realtime.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">WebSockets & MQTT</a></li>
+                <li><a href="audit.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">Audit & Metering</a></li>
+                <li class="pt-2 pb-1"><span class="font-semibold text-gray-800">4. Infrastructure</span></li>
+                <li><a href="security.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">Security & Resilience</a></li>
+                <li><a href="observability.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">Observability</a></li>
+                <li class="pt-2 pb-1"><span class="font-semibold text-gray-800">5. Examples</span></li>
+                <li><a href="integrations.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">Client Integrations</a></li>
+            </ul>
+        </aside>
+
+        <main class="flex-1 md:ml-64 p-8 lg:p-12 max-w-5xl">
+            <h1 class="text-4xl font-extrabold text-gray-900 mb-4">CLI Usage & Evolution</h1>
+<p class="text-lg text-gray-600 mb-8">How to safely use the GO-DUCK Generator without destroying your manual Go code edits over time.</p>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">1. The Command Pipeline</h2>
+    <p class="mb-4">The GO-DUCK-CLI operates on basically two commands. The initialization of your system, and the continuous evolution pipeline.</p>
+    
+    <pre><code class="language-bash"># Command 1: Fresh Creation
+# Scaffold an entirely new ecosystem. This generates ALL baseline infrastructure.
+go-duck create -o ./MY_APP -c config.yaml -g initial_schema.gdl
+
+# Command 2: Incremental Stateful Update
+# Used whenever you modify your GDL (add an entity, drop a column, add a link)
+go-duck import-gdl my_new_schema.gdl -o ./MY_APP</code></pre>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">2. Persistence Intelligence & the `.go-duck/` Folder</h2>
+    <p class="mb-4">"If I run the generator twice, will it overwrite my database migrations?" <strong>No.</strong></p>
+    
+    <p class="mb-4">The generator maintains a stateful snapshot of every entity it has ever generated inside the hidden <code>.go-duck/</code> directory at the root of your target project. When you run <code>import-gdl</code>, the code parser literally diffs your new file against the JSON representations in <code>.go-duck/</code> to intelligently assess the exact Table changes necessary without executing ghost migrations.</p>
+
+    <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-r">
+        <p class="text-red-900"><strong>Never delete `.go-duck/`</strong> unless you are intentionally wiping the database and starting configuration completely from zero.</p>
+    </div>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">3. JHipster-Style "Needles" (Safe Code Injection)</h2>
+    <p class="mb-4">"If I write custom endpoints in `main.go`, will running the generator wipe them out?" <strong>No, if you use Needles!</strong></p>
+    
+    <p class="mb-4">The generator utilizes carefully placed HTML-style comments called "needles". For example, inside <code>main.go</code>, you will see markers like <code>// go-duck-needle-add-init-server</code>.</p>
+    
+    <p class="mb-4">When the generator runs an incremental update, it doesn't just overwrite <code>main.go</code> via a template. It opens the <em>existing</em> <code>main.go</code> file on your computer, finds the Needle anchor via REGEX, and safely injects the new Code Block just below it!</p>
+
+    <h3 class="font-semibold mb-2 mt-6">Active Needle Locations:</h3>
+    <ul class="list-disc pl-6 space-y-2 mb-4 text-gray-700 font-mono text-sm bg-gray-100 p-4 rounded">
+        <li>// go-duck-needle-add-import (main.go)</li>
+        <li>// go-duck-needle-add-init-repository (main.go)</li>
+        <li>// go-duck-needle-add-grpc-service (internal/server/grpc.go)</li>
+    </ul>
+
+    <p class="text-gray-600 italic">As long as you leave these comment markers intact in their original structure, your manual custom business logic will never be touched by GO-DUCK.</p>
+</section>
+
+            <footer class="mt-12 pt-6 border-t border-gray-200 text-center text-gray-500 text-sm pb-12">
+                Generated with ❤️ by GO-DUCK CLI
+            </footer>
+        </main>
+    </div>
+</body>
+</html>

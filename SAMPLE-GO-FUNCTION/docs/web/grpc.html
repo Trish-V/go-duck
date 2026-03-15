@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>go-duck - Kratos gRPC API</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased">
+    <nav class="bg-indigo-600 text-white shadow-lg fixed w-full z-10 top-0 h-16 flex items-center px-6">
+        <div class="text-xl font-bold">go-duck <span class="text-indigo-200 text-sm font-normal">Developer Guide</span></div>
+    </nav>
+
+    <div class="flex max-w-8xl mx-auto pt-16">
+        <aside class="w-64 fixed h-full overflow-y-auto bg-white border-r border-gray-200 p-6 hidden md:block pb-24">
+            <h3 class="font-bold text-gray-400 uppercase text-xs tracking-wider mb-4">Table of Contents</h3>
+            <ul class="space-y-2">
+                <li><a href="index.html" class="text-gray-600 hover:text-indigo-600  block">Home & Quick Start</a></li>
+                <li class="pt-2 pb-1"><span class="font-semibold text-gray-800">1. Core Concepts</span></li>
+                <li><a href="gdl.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">GDL & Framework</a></li>
+                <li><a href="cli.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">CLI & Code Injection</a></li>
+                <li class="pt-2 pb-1"><span class="font-semibold text-gray-800">2. APIs</span></li>
+                <li><a href="rest.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">REST & Generic Search</a></li>
+                <li><a href="graphql.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">GraphQL Integration</a></li>
+                <li><a href="grpc.html" class="text-gray-600 hover:text-indigo-600 pl-4 block font-bold text-indigo-600">Secured gRPC (Kratos)</a></li>
+                <li class="pt-2 pb-1"><span class="font-semibold text-gray-800">3. Real-Time & Audit</span></li>
+                <li><a href="realtime.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">WebSockets & MQTT</a></li>
+                <li><a href="audit.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">Audit & Metering</a></li>
+                <li class="pt-2 pb-1"><span class="font-semibold text-gray-800">4. Infrastructure</span></li>
+                <li><a href="security.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">Security & Resilience</a></li>
+                <li><a href="observability.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">Observability</a></li>
+                <li class="pt-2 pb-1"><span class="font-semibold text-gray-800">5. Examples</span></li>
+                <li><a href="integrations.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">Client Integrations</a></li>
+            </ul>
+        </aside>
+
+        <main class="flex-1 md:ml-64 p-8 lg:p-12 max-w-5xl">
+            <h1 class="text-4xl font-extrabold text-gray-900 mb-4">Secured Kratos gRPC APIs</h1>
+<p class="text-lg text-gray-600 mb-8">Access the generated microservices over ultra-fast gRPC using Kratos framework, fully authenticated by Keycloak.</p>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Overview</h2>
+    <p class="mb-4">The GO-DUCK CLI generated app binds the Gin REST webserver on port 8080 and simultaneously spins up an optimized <strong>Go-Kratos</strong> gRPC listener on <code>port 9000</code>. Both the REST and gRPC handlers share the exact same clean <code>Repository</code> architecture underneath, guaranteeing 100% data and logic consistency.</p>
+    
+    <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6 rounded-r">
+        <p class="text-indigo-900"><strong>Note:</strong> <code>api/v1/*.proto</code> definitions are generated automatically whenever you add an entity or change fields.</p>
+    </div>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Kratos JWT Middleware Security</h2>
+    <p class="mb-4">By default, Kratos attaches a strict validation middleware out of the box. Anyone trying to consume your internal services via gRPC must be authenticated using your OIDC provider.</p>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Client Connection Example (Go)</h2>
+    <p class="mb-4">This snippet demonstrates how a developer orchestrating another microservice connects securely using Google's `oauth.TokenSource` to fulfill the Kratos Auth Header standards.</p>
+    
+    <pre><code class="language-go">import (
+    "context"
+    "log"
+    "google.golang.org/grpc"
+    "golang.org/x/oauth2"
+    "google.golang.org/grpc/credentials/oauth"
+    pb "go-duck/api/v1"
+)
+
+func main() {
+    // Inject the valid Keycloak JWT token securely
+    token := oauth.TokenSource{
+        TokenSource: oauth2.StaticTokenSource(&oauth2.Token{
+            AccessToken: "eyJh...", 
+        }),
+    }
+
+    // Dial the local port 9000 (GoDuck Server)
+    conn, err := grpc.Dial("localhost:9000", grpc.WithInsecure(), grpc.WithPerRPCCredentials(token))
+    if err != nil {
+        log.Fatalf("did not connect: %v", err)
+    }
+    defer conn.Close()
+
+    // Initialize the Kratos-generated gRPC Client
+    client := pb.NewEntityServiceClient(conn)
+
+    // Execute Call Native Network Call
+    res, err := client.GetEntity(context.Background(), &pb.GetEntityRequest{Id: 1})
+    if err != nil {
+        log.Fatalf("RPC failed: %v", err)
+    }
+    
+    log.Printf("Successfully Received Data Pipeline Object OVER gRPC: %v", res)
+}
+</code></pre>
+</section>
+
+            <footer class="mt-12 pt-6 border-t border-gray-200 text-center text-gray-500 text-sm pb-12">
+                Generated with ❤️ by GO-DUCK CLI
+            </footer>
+        </main>
+    </div>
+</body>
+</html>

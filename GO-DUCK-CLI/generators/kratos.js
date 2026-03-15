@@ -31,7 +31,9 @@ export const generateKratosCode = async (entities, projectRootDir, projectName) 
             'Boolean': 'bool',
             'LocalDate': 'string',
             'Instant': 'string',
-            'Text': 'string'
+            'Text': 'string',
+            'JSON': 'string',
+            'JSONB': 'string'
         };
         return map[type] || 'string';
     });
@@ -42,7 +44,9 @@ export const generateKratosCode = async (entities, projectRootDir, projectName) 
             'Long': 'int64',
             'Float': 'float64',
             'BigDecimal': 'float64',
-            'Boolean': 'bool'
+            'Boolean': 'bool',
+            'JSON': 'datatypes.JSON',
+            'JSONB': 'datatypes.JSON'
         };
         return map[type] || '';
     });
@@ -52,7 +56,9 @@ export const generateKratosCode = async (entities, projectRootDir, projectName) 
             'Integer': 'int32',
             'Long': 'int64',
             'Float': 'float32',
-            'BigDecimal': 'double'
+            'BigDecimal': 'double',
+            'JSON': 'string',
+            'JSONB': 'string'
         };
         return map[type] || '';
     });
@@ -60,6 +66,13 @@ export const generateKratosCode = async (entities, projectRootDir, projectName) 
     Handlebars.registerHelper('add', (a, b) => {
         return a + b;
     });
+
+    Handlebars.registerHelper('hasJson', (fields) => {
+        if (!fields || !Array.isArray(fields)) return false;
+        return fields.some(f => f.type === 'JSON' || f.type === 'JSONB');
+    });
+
+    Handlebars.registerHelper('isJson', (type) => type === 'JSON' || type === 'JSONB');
 
     for (const entity of entities) {
         const context = {

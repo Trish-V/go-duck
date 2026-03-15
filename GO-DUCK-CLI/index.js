@@ -29,6 +29,7 @@ import { generateTelemetryCode } from './generators/telemetry.js';
 import { generateDeploymentArtifacts } from './generators/devops.js';
 import { generateKratosCode } from './generators/kratos.js';
 import { generateRepositoryCode } from './generators/repository.js';
+import { generateDocumentation } from './generators/docs.js';
 
 export const generateAuditCode = async (config, outputDir) => {
     const middlewareDir = path.join(outputDir, 'middleware');
@@ -150,6 +151,13 @@ Handlebars.registerHelper('capitalize', (str) => {
     return str.charAt(0).toUpperCase() + str.slice(1);
 });
 
+Handlebars.registerHelper('hasJson', (fields) => {
+    if (!fields || !Array.isArray(fields)) return false;
+    return fields.some(f => f.type === 'JSON' || f.type === 'JSONB');
+});
+
+Handlebars.registerHelper('isJson', (type) => type === 'JSON' || type === 'JSONB');
+
 Handlebars.registerHelper('toLowerCase', (str) => {
     if (typeof str !== 'string') return '';
     return str.toLowerCase();
@@ -164,7 +172,9 @@ Handlebars.registerHelper('toGoType', (type) => {
         'Long': 'int64',
         'BigDecimal': 'float64',
         'LocalDate': 'time.Time',
-        'Instant': 'time.Time'
+        'Instant': 'time.Time',
+        'JSON': 'datatypes.JSON',
+        'JSONB': 'datatypes.JSON'
     };
     return types[type] || 'interface{}';
 });
@@ -178,7 +188,9 @@ Handlebars.registerHelper('gql_type', (type) => {
         'Long': 'ID',
         'BigDecimal': 'Float',
         'LocalDate': 'String',
-        'Instant': 'String'
+        'Instant': 'String',
+        'JSON': 'String',
+        'JSONB': 'String'
     };
     return types[type] || 'String';
 });
@@ -341,6 +353,10 @@ program
         await generateSwaggerDocs(config, entities, absoluteOutputDir);
         console.log(chalk.green('✅ Swagger API documentation generated!'));
 
+        // 8.5 Generate Web Docs App
+        await generateDocumentation(config, entities, absoluteOutputDir);
+        console.log(chalk.green('✅ Web Documentation App generated!'));
+
         // 9. Generate main.go
         const mainTemplatePath = path.resolve(path.dirname(import.meta.url.replace('file://', '')), 'templates/go/main.go.hbs');
         if (await fs.pathExists(mainTemplatePath)) {
@@ -385,6 +401,9 @@ program
 
         // Sync Swagger Docs
         await generateSwaggerDocs(config, entities, absoluteOutputDir);
+
+        // Sync Web Docs App
+        await generateDocumentation(config, entities, absoluteOutputDir);
 
         // Regenerate main.go to include new routes if any (or just entities)
         const mainTemplatePath = path.resolve(path.dirname(import.meta.url.replace('file://', '')), 'templates/go/main.go.hbs');

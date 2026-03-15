@@ -22,7 +22,7 @@
 #### 1. Core & Generic Layers
 - **Full CRUD REST APIs**: Automatically generated with pagination and filtering.
 - **Generic Search Layer**: PostgREST-like RPC endpoint (`/api/rpc/:table`).
-- **Audit & Metering**: Automatic capturing of entity changes and per-tenant usage tracking.
+- **Audit & Metering**: Automatic capturing of entity changes (via `@Audited` and `audit_log` tables) and per-tenant usage tracking.
 
 #### 2. Real-Time & Performance
 - **REST-over-WS**: WebSocket dispatcher with **Traced-Envelopes** (OTel supported).
@@ -49,12 +49,13 @@
 
 #### 6. Advanced Migration & GDL Engine
 - **Refined Liquibase Structure**: Organized `migrations/liquibase/changelogs/` with atomic, timestamped, and descriptive filenames.
-- **Enhanced GDL Types**: Support for `Text` (Long string), `String(N)` (Custom VARCHAR), and `unique` constraints.
+- **Enhanced GDL Types**: Support for `Text` (Long string), `String(N)` (Custom VARCHAR), `unique` constraints, and native `JSON` / `JSONB` structures leveraging `gorm.io/datatypes`.
 - **Automated FK Optimization**: Automatic index generation and smart nullability for Foreign Keys based on GDL schema.
 - **JHipster-style Needle Support**: Comment-based anchors (`go-duck-needle-*`) in key files for safe, evolutionary code injection.
 - **Atomic Operations**: Prevents "ghost" migration references; only updates master changelog if changes are physically written.
 
 ### Roadmap (Upcoming Features)
+- **Automated Documentation**: Auto-generate gorgeous HTML Developer Guides for each microservice with sticky TOCs, code snippets, and integration tutorials.
 - **Automated Testing**: Generation of comprehensive Ginkgo/Gomega test suites.
 - **Scheduling**: Integrated Background Jobs and Cron task support.
 - **Storage Service**: MinIO/S3 integration for file uploads.

@@ -45,8 +45,8 @@ export const generateLiquibaseChangelogs = async (entities, relationships, proje
             }
         }
 
-        // @AutoWired entities get full audit columns (skip the simpler created_at/updated_at to avoid duplicates)
-        if (entity.annotation === '@AutoWired') {
+        // @Audited entities get full audit columns (skip the simpler created_at/updated_at to avoid duplicates)
+        if (entity.annotation === '@Audited') {
             columns += `
             <column name="created_by" type="VARCHAR(255)"/>
             <column name="created_date" type="TIMESTAMP"/>

@@ -2,15 +2,17 @@ package models
 
 import (
 "time"
+{{#if (hasJson fields)}}
+"gorm.io/datatypes"
+{{/if}}
 )
 
 type {{name}} struct {
 ID uint `gorm:"primaryKey" json:"id"`
 {{#each fields}}
-{{capitalize name}} {{toGoType type}} `{{#if unique}}gorm:"uniqueIndex" {{/if}}json:"{{name}}" {{#if
-required}}binding:"required"{{/if}}`
+{{capitalize name}} {{toGoType type}} `{{#if unique}}gorm:"uniqueIndex" {{/if}}{{#if (isJson type)}}gorm:"type:{{toLowerCase type}};serializer:json" {{/if}}json:"{{name}}" {{#if required}}binding:"required"{{/if}}`
 {{/each}}
-{{#if (eq annotation "@AutoWired")}}
+{{#if (eq annotation "@Audited")}}
 CreatedBy string `gorm:"column:created_by" json:"createdBy"`
 CreatedDate time.Time `gorm:"column:created_date" json:"createdDate"`
 LastModifiedBy string `gorm:"column:last_modified_by" json:"lastModifiedBy"`

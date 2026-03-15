@@ -1,0 +1,58 @@
+<h1 class="text-4xl font-extrabold text-gray-900 mb-4">Secured Kratos gRPC APIs</h1>
+<p class="text-lg text-gray-600 mb-8">Access the generated microservices over ultra-fast gRPC using Kratos framework, fully authenticated by Keycloak.</p>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Overview</h2>
+    <p class="mb-4">The GO-DUCK CLI generated app binds the Gin REST webserver on port 8080 and simultaneously spins up an optimized <strong>Go-Kratos</strong> gRPC listener on <code>port 9000</code>. Both the REST and gRPC handlers share the exact same clean <code>Repository</code> architecture underneath, guaranteeing 100% data and logic consistency.</p>
+    
+    <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6 rounded-r">
+        <p class="text-indigo-900"><strong>Note:</strong> <code>api/v1/*.proto</code> definitions are generated automatically whenever you add an entity or change fields.</p>
+    </div>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Kratos JWT Middleware Security</h2>
+    <p class="mb-4">By default, Kratos attaches a strict validation middleware out of the box. Anyone trying to consume your internal services via gRPC must be authenticated using your OIDC provider.</p>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Client Connection Example (Go)</h2>
+    <p class="mb-4">This snippet demonstrates how a developer orchestrating another microservice connects securely using Google's `oauth.TokenSource` to fulfill the Kratos Auth Header standards.</p>
+    
+    <pre><code class="language-go">import (
+    "context"
+    "log"
+    "google.golang.org/grpc"
+    "golang.org/x/oauth2"
+    "google.golang.org/grpc/credentials/oauth"
+    pb "{{appName}}/api/v1"
+)
+
+func main() {
+    // Inject the valid Keycloak JWT token securely
+    token := oauth.TokenSource{
+        TokenSource: oauth2.StaticTokenSource(&oauth2.Token{
+            AccessToken: "eyJh...", 
+        }),
+    }
+
+    // Dial the local port 9000 (GoDuck Server)
+    conn, err := grpc.Dial("localhost:9000", grpc.WithInsecure(), grpc.WithPerRPCCredentials(token))
+    if err != nil {
+        log.Fatalf("did not connect: %v", err)
+    }
+    defer conn.Close()
+
+    // Initialize the Kratos-generated gRPC Client
+    client := pb.New{{capitalize (defaultStr (lookup entities "0.name") "Entity")}}ServiceClient(conn)
+
+    // Execute Call Native Network Call
+    res, err := client.Get{{capitalize (defaultStr (lookup entities "0.name") "Entity")}}(context.Background(), &pb.Get{{capitalize (defaultStr (lookup entities "0.name") "Entity")}}Request{Id: 1})
+    if err != nil {
+        log.Fatalf("RPC failed: %v", err)
+    }
+    
+    log.Printf("Successfully Received Data Pipeline Object OVER gRPC: %v", res)
+}
+</code></pre>
+</section>

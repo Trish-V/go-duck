@@ -1,0 +1,72 @@
+<h1 class="text-4xl font-extrabold text-gray-900 mb-4">GDL (Go-Duck Language)</h1>
+<p class="text-lg text-gray-600 mb-8">The standard DSL for generating your massive suite of code from a simple text file.</p>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">GDL Syntax & Structure</h2>
+    <p class="mb-4">GDL (Go-Duck Language) allows you to define your core business entities and the relationships between them. It looks and acts slightly similarly to JHipster's JDL.</p>
+
+    <pre><code class="language-plaintext">@Audited 
+entity Article {
+  title String required unique
+  content Text required
+  publishedDate LocalDate
+  views Integer
+  metadata JSONB
+}
+
+entity Author {
+  name String required
+  biography Text
+  settings JSON
+}
+
+relationship OneToMany {
+  Author{article} to Article{author} required
+}</code></pre>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Supported Data Types</h2>
+    <table class="min-w-full text-left bg-white border border-gray-200">
+        <thead>
+            <tr class="bg-gray-100 border-b border-gray-200 text-gray-600">
+                <th class="p-3">GDL Type</th>
+                <th class="p-3">Go Struct Type</th>
+                <th class="p-3">Postgres / Liquibase SQL Type</th>
+                <th class="p-3">GraphQL / Kratos Proto Type</th>
+            </tr>
+        </thead>
+        <tbody class="text-sm font-light text-gray-700">
+            <tr class="border-b"><td class="p-3 font-semibold">String</td><td class="p-3">string</td><td class="p-3">VARCHAR(255)</td><td class="p-3">String / string</td></tr>
+            <tr class="border-b"><td class="p-3 font-semibold">String(N)</td><td class="p-3">string</td><td class="p-3">VARCHAR(N)</td><td class="p-3">String / string</td></tr>
+            <tr class="border-b"><td class="p-3 font-semibold">Text</td><td class="p-3">string</td><td class="p-3">TEXT</td><td class="p-3">String / string</td></tr>
+            <tr class="border-b"><td class="p-3 font-semibold">JSON</td><td class="p-3">datatypes.JSON</td><td class="p-3">JSON</td><td class="p-3">String / string</td></tr>
+            <tr class="border-b"><td class="p-3 font-semibold">JSONB</td><td class="p-3">datatypes.JSON</td><td class="p-3">JSONB</td><td class="p-3">String / string</td></tr>
+            <tr class="border-b"><td class="p-3 font-semibold">Integer</td><td class="p-3">int</td><td class="p-3">INT</td><td class="p-3">Int / int32</td></tr>
+            <tr class="border-b"><td class="p-3 font-semibold">Long</td><td class="p-3">int64</td><td class="p-3">BIGINT</td><td class="p-3">ID / int64</td></tr>
+            <tr class="border-b"><td class="p-3 font-semibold">Float</td><td class="p-3">float64</td><td class="p-3">DECIMAL</td><td class="p-3">Float / float32</td></tr>
+            <tr class="border-b"><td class="p-3 font-semibold">BigDecimal</td><td class="p-3">float64</td><td class="p-3">DECIMAL</td><td class="p-3">Float / double</td></tr>
+            <tr class="border-b"><td class="p-3 font-semibold">Boolean</td><td class="p-3">bool</td><td class="p-3">BOOLEAN</td><td class="p-3">Boolean / bool</td></tr>
+            <tr class="border-b"><td class="p-3 font-semibold">LocalDate</td><td class="p-3">time.Time</td><td class="p-3">DATE</td><td class="p-3">String / string</td></tr>
+            <tr><td class="p-3 font-semibold">Instant</td><td class="p-3">time.Time</td><td class="p-3">TIMESTAMP</td><td class="p-3">String / string</td></tr>
+        </tbody>
+    </table>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Modifiers & Annotations</h2>
+    <ul class="list-disc pl-6 space-y-2 mb-4 text-gray-700">
+        <li><code>required</code>: Forces the field to be NOT NULL in the database, missing fields are blocked by the Gin validator.</li>
+        <li><code>unique</code>: Adds a UNIQUE constraint indexing standard to the column.</li>
+        <li><code>@Audited</code>: An entity annotation that completely re-wires the structural behavior of the model. Standard <code>created_at</code> triggers are bypassed and 5 highly-detailed audit columns are injected: <code>created_by, created_date, last_modified_by, last_modified_date, last_modified_user_id</code>. Changes are captured implicitly by the middleware.</li>
+    </ul>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Incremental Migration Engine</h2>
+    <p class="mb-4">Running <code>go-duck import-gdl app.gdl</code> compares your GDL file against the physical `.go-duck/` snapshot state.</p>
+    <p class="mb-4">It detects exactly what changed (such as removing a field, changing field types, adding new nested JSON) and generates precise atomic standard Liquibase XML <code>migrations/liquibase/changelogs/</code> scripts to evolve the live database without destroying data.</p>
+    <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6 rounded-r">
+        <p class="text-indigo-900"><strong>Golden Rule:</strong> Avoid editing Liquibase XML manually unless correcting an anomaly. Let the GDL manage your migrations.</p>
+    </div>
+</section>

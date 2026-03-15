@@ -5,6 +5,9 @@ import (
 	pb "{{projectName}}/api/v1"
 	"{{projectName}}/internal/repository"
 	"{{projectName}}/models"
+	{{#if (hasJson fields)}}
+	"gorm.io/datatypes"
+	{{/if}}
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -20,7 +23,7 @@ func New{{capitalize name}}Service(repo *repository.Repository) *{{capitalize na
 func (s *{{capitalize name}}Service) Create{{capitalize name}}(ctx context.Context, req *pb.Create{{capitalize name}}Request) (*pb.{{capitalize name}}Reply, error) {
 	entity := &models.{{capitalize name}}{
 		{{#each fields}}
-		{{capitalize name}}: {{#if (eq (toProtoType type) "string")}}req.{{capitalize name}}{{else}}{{toGoCast type}}(req.{{capitalize name}}){{/if}},
+		{{capitalize name}}: {{#if (isJson type)}}datatypes.JSON(req.{{capitalize name}}){{else}}{{#if (eq (toProtoType type) "string")}}req.{{capitalize name}}{{else}}{{toGoCast type}}(req.{{capitalize name}}){{/if}}{{/if}},
 		{{/each}}
 	}
 	if err := s.repo.DB.WithContext(ctx).Create(entity).Error; err != nil {
@@ -48,7 +51,7 @@ func (s *{{capitalize name}}Service) Update{{capitalize name}}(ctx context.Conte
 	}
 	
 	{{#each fields}}
-	entity.{{capitalize name}} = {{#if (eq (toProtoType type) "string")}}req.{{capitalize name}}{{else}}{{toGoCast type}}(req.{{capitalize name}}){{/if}}
+	entity.{{capitalize name}} = {{#if (isJson type)}}datatypes.JSON(req.{{capitalize name}}){{else}}{{#if (eq (toProtoType type) "string")}}req.{{capitalize name}}{{else}}{{toGoCast type}}(req.{{capitalize name}}){{/if}}{{/if}}
 	{{/each}}
 
 	if err := s.repo.DB.WithContext(ctx).Save(&entity).Error; err != nil {
@@ -93,7 +96,7 @@ func map{{capitalize name}}ToPb(m *models.{{capitalize name}}) *pb.{{capitalize 
 	return &pb.{{capitalize name}}{
 		Id: uint64(m.ID),
 		{{#each fields}}
-		{{capitalize name}}: {{#if (eq (toProtoType type) "string")}}m.{{capitalize name}}{{else}}{{toProtoCast type}}(m.{{capitalize name}}){{/if}},
+		{{capitalize name}}: {{#if (isJson type)}}string(m.{{capitalize name}}){{else}}{{#if (eq (toProtoType type) "string")}}m.{{capitalize name}}{{else}}{{toProtoCast type}}(m.{{capitalize name}}){{/if}}{{/if}},
 		{{/each}}
 		CreatedAt: timestamppb.New(m.CreatedAt),
 		UpdatedAt: timestamppb.New(m.UpdatedAt),

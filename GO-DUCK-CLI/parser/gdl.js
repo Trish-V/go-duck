@@ -8,7 +8,7 @@ import path from 'path';
  *   fieldName  Type  [required]  [unique]  [text]
  *
  * Supported types:
- *   String, Text, Integer, Long, Float, BigDecimal, Boolean, LocalDate, Instant
+ *   String, Text, Integer, Long, Float, BigDecimal, Boolean, LocalDate, Instant, JSON, JSONB
  *
  * Type overrides in GDL:
  *   - `Text` maps to TEXT in DB and string in Go
@@ -115,6 +115,8 @@ export const toGoType = (type) => {
         Boolean: 'bool',
         LocalDate: 'time.Time',
         Instant: 'time.Time',
+        JSON: 'datatypes.JSON',
+        JSONB: 'datatypes.JSON',
     };
     return map[type] || 'interface{}';
 };
@@ -134,6 +136,8 @@ export const toLiquibaseType = (field) => {
         Boolean: 'BOOLEAN',
         LocalDate: 'DATE',
         Instant: 'TIMESTAMP',
+        JSON: 'JSON',
+        JSONB: 'JSONB',
     };
     return map[field.type] || 'VARCHAR(255)';
 };

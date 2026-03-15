@@ -5,6 +5,7 @@ import (
 	pb "go-duck/api/v1"
 	"go-duck/internal/repository"
 	"go-duck/models"
+	"gorm.io/datatypes"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -24,6 +25,7 @@ func (s *CarService) CreateCar(ctx context.Context, req *pb.CreateCarRequest) (*
 		Year: int(req.Year),
 		Price: float64(req.Price),
 		Color: req.Color,
+		Features: datatypes.JSON(req.Features),
 	}
 	if err := s.repo.DB.WithContext(ctx).Create(entity).Error; err != nil {
 		return nil, err
@@ -54,6 +56,7 @@ func (s *CarService) UpdateCar(ctx context.Context, req *pb.UpdateCarRequest) (*
 	entity.Year = int(req.Year)
 	entity.Price = float64(req.Price)
 	entity.Color = req.Color
+	entity.Features = datatypes.JSON(req.Features)
 
 	if err := s.repo.DB.WithContext(ctx).Save(&entity).Error; err != nil {
 		return nil, err
@@ -99,8 +102,9 @@ func mapCarToPb(m *models.Car) *pb.Car {
 		Name: m.Name,
 		Model: m.Model,
 		Year: int32(m.Year),
-		Price: float32(m.Price),
+		Price: double(m.Price),
 		Color: m.Color,
+		Features: string(m.Features),
 		CreatedAt: timestamppb.New(m.CreatedAt),
 		UpdatedAt: timestamppb.New(m.UpdatedAt),
 	}

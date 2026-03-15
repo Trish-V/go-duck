@@ -1,12 +1,12 @@
 {
   "name": "Car",
-  "annotation": "@AutoWired",
+  "annotation": "@Audited",
   "fields": [
     {
       "name": "name",
       "type": "String",
       "required": true,
-      "unique": false,
+      "unique": true,
       "varcharSize": 255
     },
     {
@@ -19,14 +19,14 @@
     {
       "name": "year",
       "type": "Integer",
-      "required": true,
+      "required": false,
       "unique": false,
       "varcharSize": null
     },
     {
       "name": "price",
-      "type": "Float",
-      "required": true,
+      "type": "BigDecimal",
+      "required": false,
       "unique": false,
       "varcharSize": null
     },
@@ -35,7 +35,14 @@
       "type": "String",
       "required": false,
       "unique": false,
-      "varcharSize": 255
+      "varcharSize": 50
+    },
+    {
+      "name": "features",
+      "type": "JSONB",
+      "required": false,
+      "unique": false,
+      "varcharSize": null
     }
   ],
   "relationships": [
@@ -43,13 +50,13 @@
       "type": "OneToMany",
       "from": {
         "entity": "Person",
-        "field": "cars"
+        "field": "car"
       },
       "to": {
         "entity": "Car",
-        "field": "person"
+        "field": "owner"
       },
-      "required": false
+      "required": true
     }
   ],
   "app_name": "go-duck"

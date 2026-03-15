@@ -1,0 +1,60 @@
+<h1 class="text-4xl font-extrabold text-gray-900 mb-4">REST APIs & Search Layer</h1>
+<p class="text-lg text-gray-600 mb-8">Access standard HTTP endpoints built on Gin Gonic and the Generic PostgREST-like querying capability.</p>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Full CRUD Endpoints</h2>
+    <p class="mb-4">Standard HTTP routing applies. Endpoints run off port 8080 naturally.</p>
+    
+    <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6 rounded-r">
+        <p class="text-indigo-900"><strong>Note:</strong> Almost all routes pass through <code>JWTMiddleware</code>. You need an HTTP <code>Authorization: Bearer</code> header!</p>
+    </div>
+
+    <pre><code class="language-http"># List Entity Collection (Paginated)
+GET /api/{{toLowerCase (defaultStr (lookup entities "0.name") "entity")}}?page=1&pageSize=10
+Authorization: Bearer &lt;JWT&gt;
+X-Tenant-ID: default
+
+# Fetch Single Entity
+GET /api/{{toLowerCase (defaultStr (lookup entities "0.name") "entity")}}/:id
+
+# Create New Entity
+POST /api/{{toLowerCase (defaultStr (lookup entities "0.name") "entity")}}
+
+# Update Existing
+PUT /api/{{toLowerCase (defaultStr (lookup entities "0.name") "entity")}}/:id
+
+# Delete Existing
+DELETE /api/{{toLowerCase (defaultStr (lookup entities "0.name") "entity")}}/:id</code></pre>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Interactive Swagger UI</h2>
+    <p class="mb-4">Instead of testing manually via cURL, the GO-DUCK generator automatically builds a <code>swagger.json</code> definition mapping your newly generated models and REST endpoints.</p>
+    
+    <p class="mb-4">You can access the embedded, interactive Swagger API playground directly in your browser:</p>
+    <div class="bg-gray-100 p-4 rounded font-mono text-gray-800 border cursor-text">
+        <a href="http://localhost:8080/swagger" target="_blank" class="text-indigo-600 hover:underline">http://localhost:8080/swagger</a>
+    </div>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Generic PostgREST RPC Engine</h2>
+    <p class="mb-4">If your UI table wants dynamic dynamic filtering logic, calling explicit endpoints can be tedious. Instead, hit our highly performant generic Search RPC Layer that mirrors PostgREST behavior.</p>
+    
+    <pre><code class="language-bash"># Example: Finding records by explicit table name and query parameters
+curl -X GET "http://localhost:8080/api/rpc/{{toLowerCase (defaultStr (lookup entities "0.name") "table")}}?{{toLowerCase (defaultStr (lookup entities "0.fields.0.name") "name")}}=eq.John" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "X-Tenant-ID: tenant_B"</code></pre>
+    
+    <p class="mt-4 mb-2"><strong>Operator Support Index:</strong></p>
+    <ul class="list-disc pl-6 space-y-2 mb-4 text-gray-700">
+        <li><code>eq</code>: Equals (Exact Match)</li>
+        <li><code>neq</code>: Not Equals</li>
+        <li><code>gt</code>, <code>gte</code>: Greater Than, Greater Than or Equal</li>
+        <li><code>lt</code>, <code>lte</code>: Less Than, Less Than or Equal</li>
+        <li><code>like</code>: String Wildcard (Case Sensitive)</li>
+        <li><code>ilike</code>: String Wildcard (Case Insensitive)</li>
+    </ul>
+    
+    <p class="text-sm mt-4 text-gray-500">Wait, how secure is this? Extreme. The GORM framework natively protects the entire PostgREST system against explicit SQL Injection attempts.</p>
+</section>

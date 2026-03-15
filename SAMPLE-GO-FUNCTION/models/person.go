@@ -2,17 +2,17 @@ package models
 
 import (
 "time"
+"gorm.io/datatypes"
 )
 
 type Person struct {
 ID uint `gorm:"primaryKey" json:"id"`
-Name string `json:"name" binding:"required"`
-Age int `json:"age" binding:"required"`
-Email string `json:"email" binding:"required"`
-CreatedBy string `gorm:"column:created_by" json:"createdBy"`
-CreatedDate time.Time `gorm:"column:created_date" json:"createdDate"`
-LastModifiedBy string `gorm:"column:last_modified_by" json:"lastModifiedBy"`
-LastModifiedDate time.Time `gorm:"column:last_modified_date" json:"lastModifiedDate"`
-LastModifiedUserID string `gorm:"column:last_modified_user_id" json:"lastModifiedUserId"`
-Cars []Car `gorm:"foreignKey:PersonID" json:"cars"`
+FirstName string `json:"firstName" binding:"required"`
+LastName string `json:"lastName" `
+Email string `gorm:"uniqueIndex" json:"email" `
+Age int `json:"age" `
+Preferences datatypes.JSON `gorm:"type:json;serializer:json" json:"preferences" `
+CreatedAt time.Time `gorm:"autoCreateTime" json:"createdAt"`
+UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updatedAt"`
+Car []Car `gorm:"foreignKey:OwnerID" json:"car"`
 }

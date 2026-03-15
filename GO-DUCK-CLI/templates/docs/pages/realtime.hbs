@@ -1,0 +1,43 @@
+<h1 class="text-4xl font-extrabold text-gray-900 mb-4">WebSockets & MQTT Event Streaming</h1>
+<p class="text-lg text-gray-600 mb-8">Execute REST requests securely over full-duplex WebSocket connections or subscribe to async CRUD event streaming.</p>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">1. REST-over-WS Dispatcher</h2>
+    <p class="mb-4">Instead of traditional HTTP, you can pass highly efficient "Traced Envelopes" through our WebSocket endpoint at <code>ws://localhost:8080/ws</code>. The GO-DUCK generated engine unpacks the WS payload and routes it natively through Gin.</p>
+    
+    <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6 rounded-r">
+        <p class="text-indigo-900"><strong>Note:</strong> Token validation is done via query-param out of necessity due to websocket protocol limitations.</p>
+    </div>
+
+    <h3 class="font-semibold mb-2 mt-6">Browser/JS Connection Spec</h3>
+    <pre><code class="language-javascript">const token = "eyJhbGciOi..."; // Valid Keycloak Access Token
+
+// Phase 1: Authentication happens precisely on the handshake (WSS Handshake via query param)
+const ws = new WebSocket(\`ws://localhost:8080/ws?token=\${token}\`);
+
+ws.onopen = () => {
+  // Phase 2: Send HMAC-SHA256 Encrypted / Signed Messages!
+  ws.send(JSON.stringify({
+    TraceID: "uuid-v4-frontend-req",
+    Method: "GET",
+    Path: "/api/{{toLowerCase (defaultStr (lookup entities "0.name") "entity")}}s",
+    Payload: "{}",
+    Signature: "2d7a221f7dbb2..." // Signature ensures Message Integrity
+  }));
+};
+
+ws.onmessage = (event) => console.log("Received via WS:", event.data);</code></pre>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">2. Asynchronous MQTT Streaming</h2>
+    <p class="mb-4">Rather than relying entirely on synchronous API calls, every successful <code>CREATE / UPDATE / DELETE</code> on any GDL generated model emits an event to the unified MQTT broker configured in the `docker-compose.yml`.</p>
+    
+    <h3 class="font-semibold mb-2">How to listen for specific webhooks</h3>
+    <pre><code class="language-bash"># mosquitto_sub listening to any mutation globally inside the microservice
+mosquitto_sub -h localhost -p 1883 -t "go-duck/events/#" -u dev_user -P dev_password
+
+# To listen ONLY when the {{capitalize (defaultStr (lookup entities "0.name") "Entity")}} object gets created
+mosquitto_sub -h localhost -p 1883 -t "go-duck/events/{{toLowerCase (defaultStr (lookup entities "0.name") "entity")}}/CREATE" -u dev_user -P dev_password
+</code></pre>
+</section>

@@ -1,0 +1,28 @@
+<h1 class="text-4xl font-extrabold text-gray-900 mb-4">{{appName}} Developer Guide</h1>
+<p class="text-lg text-gray-600 mb-8">Welcome to the developer documentation for your GO-DUCK generated microservice. This guide covers how to connect, authenticate, and integrate with all the implemented features (The 200% Milestone).</p>
+
+<section id="quick-start" class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Quick Start & Setup</h2>
+    <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6 rounded-r">
+        <p class="text-indigo-900"><strong>Note:</strong> Most APIs are secured by Keycloak JWT. You must start the infrastructure to have access to Keycloak, DB, Redis, etc.</p>
+    </div>
+    <h3 class="font-semibold mb-2">Running the application locally:</h3>
+    <pre><code class="language-bash"># Start local infrastructure (Postgres, Redis, Mosquitto MQTT, Keycloak, Jaeger, OTel Collector)
+docker-compose up -d
+
+# Install dependencies and start the Go server
+go mod tidy
+go run main.go</code></pre>
+
+    <h3 class="font-semibold mb-2 mt-6">Features Overview:</h3>
+    <ul class="list-disc pl-6 space-y-2 mb-4 text-gray-700">
+        <li><strong>Full CRUD REST APIs & Search:</strong> Standard routes and a PostgREST-like RPC generic query system.</li>
+        <li><strong>GraphQL:</strong> A complete, connected GraphQL schema integrated directly with the GORM models.</li>
+        <li><strong>Secure Kratos gRPC APIs:</strong> Ultra-fast Protobuf services automatically configured with Keycloak JWT authentication.</li>
+        <li><strong>Real-Time Operations:</strong> REST-over-WebSockets dispatcher with HMAC-SHA256 integrity and async MQTT Pub/Sub events.</li>
+        <li><strong>Auditing & Metering:</strong> Automatic interceptors for tracking mutation footprints and managing API usage limits.</li>
+        <li><strong>Infrastructure Ready:</strong> OpenTelemetry integration, Dockerization, and automated incremental Liquibase migrations.</li>
+    </ul>
+    
+    <p class="mt-8 text-gray-600">Please use the sidebar to dive deeper into any specific section, API format, or framework integration strategy.</p>
+</section>

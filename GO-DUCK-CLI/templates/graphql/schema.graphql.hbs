@@ -4,7 +4,7 @@ id: ID!
 {{#each fields}}
 {{name}}: {{gql_type type}}{{#if required}}!{{/if}}
 {{/each}}
-{{#if (eq annotation "@AutoWired")}}
+{{#if (eq annotation "@Audited")}}
 createdBy: String
 createdDate: String
 lastModifiedBy: String

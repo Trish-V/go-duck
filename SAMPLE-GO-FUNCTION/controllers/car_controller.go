@@ -62,8 +62,8 @@ query = query.Offset(page * size).Limit(size)
 // 2. Eager Loading (Full Bodied) vs Lazy (IDs Only)
 eager := c.Query("eager") == "true"
 if eager {
-query = query.Preload("Cars")
-query = query.Preload("Person")
+query = query.Preload("Car")
+query = query.Preload("Owner")
 }
 
 // 3. Simple Filtering (Optimized for CRUD)
@@ -105,8 +105,8 @@ return
 // 2. Fallback to DB (With Context for Tracing)
 query := ctrl.DB.WithContext(ctx)
 if c.Query("eager") == "true" {
-query = query.Preload("Cars")
-query = query.Preload("Person")
+query = query.Preload("Car")
+query = query.Preload("Owner")
 }
 
 if err := query.First(&entity, id).Error; err != nil {

@@ -5,6 +5,7 @@ import (
 	pb "go-duck/api/v1"
 	"go-duck/internal/repository"
 	"go-duck/models"
+	"gorm.io/datatypes"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -19,9 +20,11 @@ func NewPersonService(repo *repository.Repository) *PersonService {
 
 func (s *PersonService) CreatePerson(ctx context.Context, req *pb.CreatePersonRequest) (*pb.PersonReply, error) {
 	entity := &models.Person{
-		Name: req.Name,
-		Age: int(req.Age),
+		FirstName: req.FirstName,
+		LastName: req.LastName,
 		Email: req.Email,
+		Age: int(req.Age),
+		Preferences: datatypes.JSON(req.Preferences),
 	}
 	if err := s.repo.DB.WithContext(ctx).Create(entity).Error; err != nil {
 		return nil, err
@@ -47,9 +50,11 @@ func (s *PersonService) UpdatePerson(ctx context.Context, req *pb.UpdatePersonRe
 		return nil, err
 	}
 	
-	entity.Name = req.Name
-	entity.Age = int(req.Age)
+	entity.FirstName = req.FirstName
+	entity.LastName = req.LastName
 	entity.Email = req.Email
+	entity.Age = int(req.Age)
+	entity.Preferences = datatypes.JSON(req.Preferences)
 
 	if err := s.repo.DB.WithContext(ctx).Save(&entity).Error; err != nil {
 		return nil, err
@@ -92,9 +97,11 @@ func (s *PersonService) ListPerson(ctx context.Context, req *pb.ListPersonReques
 func mapPersonToPb(m *models.Person) *pb.Person {
 	return &pb.Person{
 		Id: uint64(m.ID),
-		Name: m.Name,
-		Age: int32(m.Age),
+		FirstName: m.FirstName,
+		LastName: m.LastName,
 		Email: m.Email,
+		Age: int32(m.Age),
+		Preferences: string(m.Preferences),
 		CreatedAt: timestamppb.New(m.CreatedAt),
 		UpdatedAt: timestamppb.New(m.UpdatedAt),
 	}

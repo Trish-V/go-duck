@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>go-duck - Security &amp; Auth</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased">
+    <nav class="bg-indigo-600 text-white shadow-lg fixed w-full z-10 top-0 h-16 flex items-center px-6">
+        <div class="text-xl font-bold">go-duck <span class="text-indigo-200 text-sm font-normal">Developer Guide</span></div>
+    </nav>
+
+    <div class="flex max-w-8xl mx-auto pt-16">
+        <aside class="w-64 fixed h-full overflow-y-auto bg-white border-r border-gray-200 p-6 hidden md:block pb-24">
+            <h3 class="font-bold text-gray-400 uppercase text-xs tracking-wider mb-4">Table of Contents</h3>
+            <ul class="space-y-2">
+                <li><a href="index.html" class="text-gray-600 hover:text-indigo-600  block">Home & Quick Start</a></li>
+                <li class="pt-2 pb-1"><span class="font-semibold text-gray-800">1. Core Concepts</span></li>
+                <li><a href="gdl.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">GDL & Framework</a></li>
+                <li><a href="cli.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">CLI & Code Injection</a></li>
+                <li class="pt-2 pb-1"><span class="font-semibold text-gray-800">2. APIs</span></li>
+                <li><a href="rest.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">REST & Generic Search</a></li>
+                <li><a href="graphql.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">GraphQL Integration</a></li>
+                <li><a href="grpc.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">Secured gRPC (Kratos)</a></li>
+                <li class="pt-2 pb-1"><span class="font-semibold text-gray-800">3. Real-Time & Audit</span></li>
+                <li><a href="realtime.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">WebSockets & MQTT</a></li>
+                <li><a href="audit.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">Audit & Metering</a></li>
+                <li class="pt-2 pb-1"><span class="font-semibold text-gray-800">4. Infrastructure</span></li>
+                <li><a href="security.html" class="text-gray-600 hover:text-indigo-600 pl-4 block font-bold text-indigo-600">Security & Resilience</a></li>
+                <li><a href="observability.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">Observability</a></li>
+                <li class="pt-2 pb-1"><span class="font-semibold text-gray-800">5. Examples</span></li>
+                <li><a href="integrations.html" class="text-gray-600 hover:text-indigo-600 pl-4 block ">Client Integrations</a></li>
+            </ul>
+        </aside>
+
+        <main class="flex-1 md:ml-64 p-8 lg:p-12 max-w-5xl">
+            <h1 class="text-4xl font-extrabold text-gray-900 mb-4">Security & Resilience</h1>
+<p class="text-lg text-gray-600 mb-8">Out-of-the-box infrastructure protecting your core microservices.</p>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">1. Identity & Access Management (OIDC)</h2>
+    <p class="mb-4">GO-DUCK generated apps utilize strict Keycloak JWT Authorization. No entity router functions without traversing the <code>jwtAuthMiddleware</code> and extracting structural properties of the connected user from the signed payload utilizing the pre-configured realm secret.</p>
+    
+    <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6 rounded-r">
+        <p class="text-indigo-900"><strong>Golden Rule:</strong> In <code>application-dev.yml</code>, ensure your Keycloak Realm, ClientID, and Secret are accurately synced with the local running Docker Keycloak image.</p>
+    </div>
+
+    <h3 class="font-semibold mb-2 mt-6">2. Burst Protection (Rate Limiting)</h3>
+    <p class="mb-4">Using the standard <code>x/time/rate</code> package, a Token Bucket rate limiter is attached to the Gin Engine globally to mitigate DDOS vectors and abusive scripting.</p>
+    <pre><code class="language-yaml"># Inside your application-prod.yml
+go-duck:
+  security:
+    rate-limit:
+      rps: 150.0  # Allow up to 150 Req/Sec
+      burst: 300  # Burstable tokens
+</code></pre>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">3. Sony/go-breaker (Circuit Breakers)</h2>
+    <p class="mb-4">When a Microservice starts rejecting requests globally due to a failing dependent macro-service (e.g. Redis node goes down / DB locks / MQTT broker drops), your application handles this gracefully by "tripping" an open Circuit Breaker to prevent Request Queue Pile-ups.</p>
+    
+    <pre><code class="language-go">resilience.Execute(func() (interface{}, error) {
+    // Risky Network / DB Operations wrapped automatically!
+    return s.repo.DB.First(&entity, req.Id).Error
+})</code></pre>
+</section>
+
+            <footer class="mt-12 pt-6 border-t border-gray-200 text-center text-gray-500 text-sm pb-12">
+                Generated with ❤️ by GO-DUCK CLI
+            </footer>
+        </main>
+    </div>
+</body>
+</html>
