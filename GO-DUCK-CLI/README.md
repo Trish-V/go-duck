@@ -1,7 +1,7 @@
 # GO-DUCK CLI
 
 <p align="center">
-  <img src="../MARKETING/logo.png" alt="Go-Duck Logo" width="200"/>
+  <img src="https://goduck.theheavenscode.com/logo.png" alt="Go-Duck Logo" width="200"/>
 </p>
 
 <h1 align="center">GO-DUCK: The Evolutionary Architecture Factory</h1>
@@ -19,6 +19,8 @@
 
 ## 🦆 The Legend of the Century
 
+[Watch the intro video](https://goduck.theheavenscode.com/intro.mp4)
+
 In the legendary Silicon Valley of Code, a nomadic Gopher—lightning-fast and known for his tireless concurrency—crossed paths with a Duck from the Great Persistence Bayou. The Duck held the wisdom of adaptability and the secret to navigating ever-shifting business tides. They realized that while the Gopher built fast, the Duck built to survive. Together, they forged a pact to create the **Generator of Kings**.
 
 ### Gin Gonic Tonic: The Refreshment of Performance
@@ -26,7 +28,7 @@ In the legendary Silicon Valley of Code, a nomadic Gopher—lightning-fast and k
 To fuel their grand design, they sought the Legendary Bottle of Gin. This magical brew wasn't just for hydration; it transformed their web routing into a crystalline, high-performance flow. Routes became fast, middleware became transparent, and the developer experience became as refreshing as a cold tonic on a summer's day. This gave **GO-DUCK** its distinctive, lightweight spirit.
 
 <p align="center">
-  <img src="../MARKETING/1.png" alt="Go-Duck Feature 1" width="400"/>
+  <img src="https://goduck.theheavenscode.com/gin_bottle.png" alt="Go-Duck Feature 1" width="400"/>
 </p>
 
 ### The Armor of the Divine: Mark of Kratos
@@ -34,7 +36,7 @@ To fuel their grand design, they sought the Legendary Bottle of Gin. This magica
 But speed without strength is a house made of cards. In the digital forge of the underworld, they recovered the Mark of Kratos. By stamping this sigil onto their internal services, they achieved gRPC industrial resilience. Every service became armored with strict Protocol Buffer contracts, ensuring that no matter how hard the system scaled, it would never break under the divine weight of technical debt.
 
 <p align="center">
-  <img src="../MARKETING/2.png" alt="Go-Duck Feature 2" width="400"/>
+  <img src="https://goduck.theheavenscode.com/kratos_mark.png" alt="Go-Duck Feature 2" width="400"/>
 </p>
 
 ### The GDL Genesis
