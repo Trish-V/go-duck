@@ -62,5 +62,12 @@ export const generateDocumentation = async (config, entities, outputDir) => {
         await fs.writeFile(path.join(docsDir, `${page.file}.html`), fullHtml);
     }
 
+    const files = await fs.readdir(templatesDir);
+    for (const file of files) {
+        if (file.endsWith('.png')) {
+            await fs.copy(path.join(templatesDir, file), path.join(docsDir, file));
+        }
+    }
+
     console.log(chalk.green('✅ Multi-Page Developer Guide HTML Web App generated at: docs/web/index.html'));
 };

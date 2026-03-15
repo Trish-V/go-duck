@@ -1,28 +1,88 @@
-<h1 class="text-4xl font-extrabold text-gray-900 mb-4">{{appName}} Developer Guide</h1>
-<p class="text-lg text-gray-600 mb-8">Welcome to the developer documentation for your GO-DUCK generated microservice. This guide covers how to connect, authenticate, and integrate with all the implemented features (The 200% Milestone).</p>
-
-<section id="quick-start" class="mb-10">
-    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Quick Start & Setup</h2>
-    <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6 rounded-r">
-        <p class="text-indigo-900"><strong>Note:</strong> Most APIs are secured by Keycloak JWT. You must start the infrastructure to have access to Keycloak, DB, Redis, etc.</p>
+<div class="mb-10 text-center lg:text-left">
+    <div class="flex items-center justify-center lg:justify-start mb-6">
+        <img src="logo.png" alt="GO-DUCK" class="h-16 w-auto mr-4 drop-shadow-xl">
+        <h1 class="text-4xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight">GO-DUCK</h1>
     </div>
-    <h3 class="font-semibold mb-2">Running the application locally:</h3>
-    <pre><code class="language-bash"># Start local infrastructure (Postgres, Redis, Mosquitto MQTT, Keycloak, Jaeger, OTel Collector)
-docker-compose up -d
+    <p class="text-lg lg:text-xl text-slate-600 max-w-2xl leading-relaxed">The evolutionary code generator where high-speed Go meets versatile engineering. Scaffold enterprise microservices in seconds.</p>
+</div>
 
-# Install dependencies and start the Go server
-go mod tidy
-go run main.go</code></pre>
+<section id="the-story" class="mb-12 border-b border-slate-100 pb-12">
+    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+        <span class="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center mr-3 text-sm">🦆</span>
+        The GO-DUCK Story
+    </h2>
+    <div class="flex flex-col md:flex-row items-center gap-8">
+        <div class="flex-1 text-slate-600 leading-relaxed text-base">
+            <p class="mb-4 text-slate-700">Once upon a time in the silicon valley of code, a nomadic <strong>Gopher</strong> (representing the speed of Go) met a versatile <strong>Duck</strong> (the mascot of adaptability). Together, they hatched a plan to create the most evolutionary code generator in the ecosystem.</p>
+            <p class="text-slate-700">The result is <span class="font-bold text-indigo-600">GO-DUCK</span>. It doesn't just generate boilerplate; it evolves with your business logic. We integrated a chilled <strong>bottle of Gin</strong> for the most refreshing web routing and the divine <strong>mark of Kratos</strong> to ensure your microservices are armored with enterprise-grade gRPC resilience.</p>
+        </div>
+        <div class="flex gap-6 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <div class="text-center">
+                <img src="gin_bottle.png" alt="Gin Bottle" class="w-20 h-20 object-contain hover:scale-110 transition-transform duration-300 mx-auto filter drop-shadow-md">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2 block">Gin Gonic</span>
+            </div>
+            <div class="text-center">
+                <img src="kratos_mark.png" alt="Kratos Mark" class="w-20 h-20 object-contain hover:scale-110 transition-transform duration-300 mx-auto filter drop-shadow-md">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2 block">Go-Kratos</span>
+            </div>
+        </div>
+    </div>
+</section>
 
-    <h3 class="font-semibold mb-2 mt-6">Features Overview:</h3>
-    <ul class="list-disc pl-6 space-y-2 mb-4 text-gray-700">
-        <li><strong>Full CRUD REST APIs & Search:</strong> Standard routes and a PostgREST-like RPC generic query system.</li>
-        <li><strong>GraphQL:</strong> A complete, connected GraphQL schema integrated directly with the GORM models.</li>
-        <li><strong>Secure Kratos gRPC APIs:</strong> Ultra-fast Protobuf services automatically configured with Keycloak JWT authentication.</li>
-        <li><strong>Real-Time Operations:</strong> REST-over-WebSockets dispatcher with HMAC-SHA256 integrity and async MQTT Pub/Sub events.</li>
-        <li><strong>Auditing & Metering:</strong> Automatic interceptors for tracking mutation footprints and managing API usage limits.</li>
-        <li><strong>Infrastructure Ready:</strong> OpenTelemetry integration, Dockerization, and automated incremental Liquibase migrations.</li>
-    </ul>
+<section id="installation" class="mb-12">
+    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+        <span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center mr-3 text-sm">💾</span>
+        Installation
+    </h2>
+    <div class="bg-slate-900 rounded-xl overflow-hidden shadow-lg mb-6">
+        <div class="bg-slate-800 px-4 py-2 flex items-center">
+            <span class="text-xs text-slate-400 font-mono">Install CLI Globally</span>
+        </div>
+        <div class="p-5 font-mono text-sm">
+            <span class="text-emerald-400">$</span> <span class="text-white">npm install -g go-duck-cli</span>
+        </div>
+    </div>
+    <p class="text-sm text-slate-500 italic">Pre-requisites: Node.js (v18+), Go (v1.21+), and Docker Compose for infrastructure.</p>
+</section>
+
+<section id="quick-start" class="mb-12">
+    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+        <span class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center mr-3 text-sm">🚀</span>
+        Scaffold & Run
+    </h2>
     
-    <p class="mt-8 text-gray-600">Please use the sidebar to dive deeper into any specific section, API format, or framework integration strategy.</p>
+    <div class="bg-slate-800 rounded-xl overflow-hidden shadow-lg mb-10">
+        <div class="bg-slate-900/50 px-4 py-3 border-b border-slate-700/50 flex items-center">
+            <div class="flex space-x-1.5 mr-4">
+                <div class="w-3 h-3 rounded-full bg-rose-500"></div>
+                <div class="w-3 h-3 rounded-full bg-amber-500"></div>
+                <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+            </div>
+            <span class="text-xs text-slate-400 font-mono">Scaffolding Command</span>
+        </div>
+        <div class="p-5">
+            <pre><code class="language-bash text-sm"># 1. Create a new microservice
+go-duck create -o ./my-app -c config.yaml
+
+# 2. Enter and run
+cd my-app
+docker-compose up -d
+go run main.go</code></pre>
+        </div>
+    </div>
+
+    <h2 class="text-2xl font-bold text-slate-800 mb-6 mt-12 flex items-center">
+        <span class="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center mr-3 text-sm">✨</span>
+        Features Overview
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+        <div class="p-5 rounded-2xl border border-slate-200 bg-white hover:shadow-md transition-all duration-200 group">
+            <h3 class="font-bold text-slate-900 mb-2 flex items-center"><svg class="w-5 h-5 text-indigo-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>REST & Search</h3>
+            <p class="text-sm text-slate-600 leading-relaxed">Standard CRUD routes alongside a high-performance PostgREST-style RPC system.</p>
+        </div>
+        <div class="p-5 rounded-2xl border border-slate-200 bg-white hover:shadow-md transition-all duration-200 group">
+            <h3 class="font-bold text-slate-900 mb-2 flex items-center"><svg class="w-5 h-5 text-fuchsia-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"></path></svg>GraphQL</h3>
+            <p class="text-sm text-slate-600 leading-relaxed">A complete Graph schema integrated natively with GORM data relations.</p>
+        </div>
+    </div>
 </section>
