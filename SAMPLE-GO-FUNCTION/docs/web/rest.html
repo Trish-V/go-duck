@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>go-duck - REST &amp; Search API</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+    <script>hljs.highlightAll();</script>
+    <style>
+        .gradient-text { background: linear-gradient(90deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-indigo-300 selection:text-indigo-900">
+    <!-- Navbar -->
+    <nav class="bg-slate-900/95 backdrop-blur-md shadow-lg fixed w-full z-30 top-0 h-16 flex items-center px-6 border-b border-slate-800">
+        <div class="flex items-center">
+            <img src="logo.png" alt="GO-DUCK Logo" class="h-10 w-auto mr-4 rounded-lg shadow-sm">
+            <div class="text-xl font-bold text-white tracking-tight">GO-DUCK <span class="text-indigo-300 text-xs font-semibold ml-2 inline-flex items-center px-2 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-500/30 uppercase tracking-wider hidden sm:inline-flex">Developer Guide</span></div>
+        </div>
+    </nav>
+
+    <div class="flex max-w-[90rem] mx-auto pt-16">
+        <!-- Sidebar -->
+        <aside class="w-72 fixed h-[calc(100vh-4rem)] overflow-y-auto bg-slate-50 border-r border-slate-200 p-6 hidden lg:block scroll-smooth">
+            <h3 class="font-bold text-slate-400 uppercase text-[10px] tracking-widest mb-4 flex items-center">
+                <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+                Table of Contents
+            </h3>
+            <ul class="space-y-1 text-sm font-medium text-slate-600">
+                <li><a href="index.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">Home & Quick Start</a></li>
+                
+                <li class="pt-5 pb-1 px-3"><span class="font-bold text-slate-900 uppercase text-[10px] tracking-widest">1. Core Concepts</span></li>
+                <li><a href="gdl.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">GDL & Framework</a></li>
+                <li><a href="cli.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">CLI & Code Injection</a></li>
+                
+                <li class="pt-5 pb-1 px-3"><span class="font-bold text-slate-900 uppercase text-[10px] tracking-widest">2. API Endpoints</span></li>
+                <li><a href="rest.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 bg-white shadow-sm ring-1 ring-slate-200 text-indigo-700">REST & Generic Search</a></li>
+                <li><a href="graphql.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">GraphQL Integration</a></li>
+                <li><a href="grpc.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">Secured gRPC (Kratos)</a></li>
+                
+                <li class="pt-5 pb-1 px-3"><span class="font-bold text-slate-900 uppercase text-[10px] tracking-widest">3. Real-Time & Audit</span></li>
+                <li><a href="realtime.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">WebSockets & MQTT</a></li>
+                <li><a href="audit.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">Audit & Metering</a></li>
+                
+                <li class="pt-5 pb-1 px-3"><span class="font-bold text-slate-900 uppercase text-[10px] tracking-widest">4. Infrastructure</span></li>
+                <li><a href="security.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">Security & Resilience</a></li>
+                <li><a href="observability.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">Observability</a></li>
+                
+                <li class="pt-5 pb-1 px-3"><span class="font-bold text-slate-900 uppercase text-[10px] tracking-widest">5. References</span></li>
+                <li><a href="integrations.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">Client Integrations</a></li>
+            </ul>
+        </aside>
+
+        <main class="flex-1 lg:ml-72 p-6 md:p-10 max-w-4xl xl:max-w-5xl">
+            <!-- White Content Card -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 md:p-12 mb-10 relative overflow-hidden">
+                <!-- Background Decoration -->
+                <div class="absolute top-0 right-0 w-64 h-64 bg-slate-50 rounded-bl-full -z-0"></div>
+                
+                <!-- Content injected here (raised z-index) -->
+                <div class="relative z-10">
+                    <div class="mb-10 text-center lg:text-left border-b border-slate-200 pb-8 text-neutral-900">
+    <div class="inline-flex items-center px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-semibold tracking-wide uppercase mb-4">
+        Communication Layer
+    </div>
+    <h1 class="text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight mb-4">REST & Search API</h1>
+    <p class="text-lg lg:text-xl text-slate-600 max-w-2xl leading-relaxed">High-performance, tenant-aware JSON endpoints powered by Gin Gonic and GORM.</p>
+</div>
+
+<!-- Mode Overview -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+    <div class="bg-gradient-to-br from-indigo-600 to-indigo-800 p-8 rounded-[2rem] text-white shadow-xl shadow-indigo-200/50">
+        <h3 class="text-xl font-bold mb-3 flex items-center">
+            <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+            Entity-Specific CRUD
+        </h3>
+        <p class="text-indigo-100 text-sm leading-relaxed mb-6">Standard strongly-typed controllers for every entity. Includes built-in caching, MQTT eventing, and multi-tenancy.</p>
+        <div class="text-xs font-mono bg-white/10 p-3 rounded-xl border border-white/20">
+            GET /api/articles<br>
+            GET /api/articles/:id?eager=true
+        </div>
+    </div>
+    <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-[2rem] text-white shadow-xl shadow-slate-300/50">
+        <h3 class="text-xl font-bold mb-3 flex items-center">
+            <svg class="w-6 h-6 mr-3 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            Generic Search RPC
+        </h3>
+        <p class="text-slate-300 text-sm leading-relaxed mb-6">A single, ultra-flexible engine mirroring PostgREST. Filter by any column using powerful operators WITHOUT writing code.</p>
+        <div class="text-xs font-mono bg-white/10 p-3 rounded-xl border border-white/20">
+            GET /api/rpc/articles?status=eq.PUBLISHED<br>
+            GET /api/rpc/articles?id=gt.100&order=id.desc
+        </div>
+    </div>
+</div>
+
+<section class="mb-12">
+    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+        <span class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center mr-3 text-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+        </span>
+        Standard Controller Features
+    </h2>
+
+    <div class="space-y-8">
+        <!-- Relationship Loading -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+            <h4 class="font-bold text-slate-900 mb-3">📦 Eager vs. Lazy Loading</h4>
+            <p class="text-slate-600 text-sm mb-4 leading-relaxed">
+                By default, entities are loaded <strong>Lazily</strong> (IDs only for foreign keys). To perform a Join and fetch the full object graph, use the <code class="bg-slate-100 px-1 py-0.5 rounded text-indigo-600 font-mono">eager</code> parameter.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-slate-50 p-4 rounded-xl">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Lazy (Default)</span>
+                    <p class="font-mono text-xs mt-2 text-slate-700">GET /api/article/1</p>
+                </div>
+                <div class="bg-emerald-50 p-4 rounded-xl">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-emerald-500">Eager (Joined)</span>
+                    <p class="font-mono text-xs mt-2 text-slate-700">GET /api/article/1?eager=true</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+            <h4 class="font-bold text-slate-900 mb-3">📏 Offset Pagination</h4>
+            <p class="text-slate-600 text-sm mb-4 leading-relaxed">
+                All collection endpoints support built-in pagination to keep your frontend lightning fast.
+            </p>
+            <table class="w-full text-xs text-left border-collapse">
+                <thead>
+                    <tr class="text-slate-400 border-b border-slate-100">
+                        <th class="py-2">Parameter</th>
+                        <th class="py-2">Description</th>
+                        <th class="py-2">Default</th>
+                    </tr>
+                </thead>
+                <tbody class="text-slate-700">
+                    <tr class="border-b border-slate-50"><td class="py-3 font-mono font-bold">page</td><td class="py-3">The index of the page to fetch</td><td class="py-3">0</td></tr>
+                    <tr class="border-b border-slate-50"><td class="py-3 font-mono font-bold">size</td><td class="py-3">Number of records per page</td><td class="py-3">20</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Distributed Caching -->
+        <div class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-6 text-white text-sm shadow-lg">
+            <div class="flex items-start">
+                <div class="bg-white/20 p-2 rounded-lg mr-4">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-1">Distributed Redis Shield</h4>
+                    <p class="text-blue-50 leading-relaxed">
+                        Every <code class="bg-white/20 px-1 rounded">GetByID</code> request is automatically protected by a Redis cache layer. Mutations (Create/Update/Delete) trigger <strong>Automatic Cache Invalidation</strong> across the cluster, ensuring data consistency with zero effort.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="mb-12">
+    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+        <span class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center mr-3 text-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </span>
+        Generic Search RPC Engine
+    </h2>
+    <p class="mb-6 text-slate-600 leading-relaxed text-sm">Accessed via <code class="bg-slate-100 px-1 py-0.5 rounded text-indigo-600 font-mono">/api/rpc/:tableName</code>, this engine provides a dynamic interface to your database.</p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 text-sm">
+        <div class="bg-slate-900 rounded-2xl p-6 text-slate-300 font-mono text-xs overflow-x-auto">
+            <span class="text-emerald-400"># Complex query example</span><br>
+            curl -X GET "http://localhost:8080/api/rpc/articles?status=eq.PUBLISHED&views=gt.500&order=views.desc&limit=5"
+        </div>
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6">
+            <h5 class="text-slate-900 font-bold mb-3">Supported Operators</h5>
+            <div class="grid grid-cols-2 gap-2 text-[11px] font-mono">
+                <div class="flex justify-between border-b pb-1"><span>eq</span><span class="text-indigo-600">Equals</span></div>
+                <div class="flex justify-between border-b pb-1"><span>neq</span><span class="text-indigo-600">Not Equals</span></div>
+                <div class="flex justify-between border-b pb-1"><span>gt / gte</span><span class="text-indigo-600">Greater Than</span></div>
+                <div class="flex justify-between border-b pb-1"><span>lt / lte</span><span class="text-indigo-600">Less Than</span></div>
+                <div class="flex justify-between border-b pb-1"><span>like</span><span class="text-indigo-600">Search (%)</span></div>
+                <div class="flex justify-between border-b pb-1"><span>ilike</span><span class="text-indigo-600">Case-Insensitive</span></div>
+                <div class="flex justify-between border-b pb-1"><span>in</span><span class="text-indigo-600">List (1,2,3)</span></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="mb-12">
+    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+        <span class="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center mr-3 text-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+        </span>
+        Security & Context
+    </h2>
+    <div class="bg-rose-50 border border-rose-100 rounded-2xl p-6 flex items-start">
+        <div class="bg-rose-100 p-2 rounded-lg mr-4">
+            <svg class="w-6 h-6 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </div>
+        <div>
+            <h4 class="font-bold text-rose-900 mb-1">Mandatory Headers</h4>
+            <p class="text-rose-700 text-sm leading-relaxed mb-4">Every Go-Duck API request must satisfy the Identity and Multi-Tenancy gatekeepers.</p>
+            <ul class="space-y-2 text-xs font-mono text-rose-800">
+                <li><span class="font-bold">Authorization:</span> Bearer &lt;Keycloak_JWT&gt;</li>
+                <li><span class="font-bold">X-Tenant-ID:</span> Subdomain or ID of the tenant dashboard</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+                </div>
+            </div>
+            
+            <footer class="mt-8 text-center text-slate-400 text-sm mb-8 flex justify-center items-center space-x-2">
+                <span>Generated with</span>
+                <span class="text-lg">🦆</span>
+                <span>by <strong>GO-DUCK CLI</strong></span>
+            </footer>
+        </main>
+    </div>
+    <!-- Lightbox Overlay -->
+    <div id="lightbox" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4 md:p-10 cursor-zoom-out" onclick="this.classList.add('hidden')">
+        <div class="relative max-w-5xl w-full h-full flex items-center justify-center">
+            <img id="lightbox-img" src="" alt="Enlarged View" class="max-w-full max-h-full object-contain rounded-xl shadow-2xl transition-all duration-300">
+            <button class="absolute top-0 right-0 m-4 text-white hover:text-indigo-300 transition-colors">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function openLightbox(src) {
+            const lb = document.getElementById('lightbox');
+            const img = document.getElementById('lightbox-img');
+            img.src = src;
+            lb.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

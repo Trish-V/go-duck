@@ -1,0 +1,104 @@
+package service
+
+import (
+	"context"
+	pb "{{projectName}}/api/v1"
+	"{{projectName}}/internal/repository"
+	"{{projectName}}/models"
+	{{#if (hasJson fields)}}
+	"gorm.io/datatypes"
+	{{/if}}
+	"google.golang.org/protobuf/types/known/timestamppb"
+)
+
+type {{capitalize name}}Service struct {
+	pb.Unimplemented{{capitalize name}}ServiceServer
+	repo *repository.Repository
+}
+
+func New{{capitalize name}}Service(repo *repository.Repository) *{{capitalize name}}Service {
+	return &{{capitalize name}}Service{repo: repo}
+}
+
+func (s *{{capitalize name}}Service) Create{{capitalize name}}(ctx context.Context, req *pb.Create{{capitalize name}}Request) (*pb.{{capitalize name}}Reply, error) {
+	entity := &models.{{capitalize name}}{
+		{{#each fields}}
+		{{capitalize name}}: {{#if (isJson type)}}datatypes.JSON(req.{{capitalize name}}){{else}}{{#if (toGoCast type)}}{{toGoCast type}}(req.{{capitalize name}}){{else}}req.{{capitalize name}}{{/if}}{{/if}},
+		{{/each}}
+	}
+	if err := s.repo.DB.WithContext(ctx).Create(entity).Error; err != nil {
+		return nil, err
+	}
+	return &pb.{{capitalize name}}Reply{
+		Data: map{{capitalize name}}ToPb(entity),
+	}, nil
+}
+
+func (s *{{capitalize name}}Service) Get{{capitalize name}}(ctx context.Context, req *pb.Get{{capitalize name}}Request) (*pb.{{capitalize name}}Reply, error) {
+	var entity models.{{capitalize name}}
+	if err := s.repo.DB.WithContext(ctx).First(&entity, req.Id).Error; err != nil {
+		return nil, err
+	}
+	return &pb.{{capitalize name}}Reply{
+		Data: map{{capitalize name}}ToPb(&entity),
+	}, nil
+}
+
+func (s *{{capitalize name}}Service) Update{{capitalize name}}(ctx context.Context, req *pb.Update{{capitalize name}}Request) (*pb.{{capitalize name}}Reply, error) {
+	var entity models.{{capitalize name}}
+	if err := s.repo.DB.WithContext(ctx).First(&entity, req.Id).Error; err != nil {
+		return nil, err
+	}
+	
+	{{#each fields}}
+	entity.{{capitalize name}} = {{#if (isJson type)}}datatypes.JSON(req.{{capitalize name}}){{else}}{{#if (toGoCast type)}}{{toGoCast type}}(req.{{capitalize name}}){{else}}req.{{capitalize name}}{{/if}}{{/if}}
+	{{/each}}
+
+	if err := s.repo.DB.WithContext(ctx).Save(&entity).Error; err != nil {
+		return nil, err
+	}
+	return &pb.{{capitalize name}}Reply{
+		Data: map{{capitalize name}}ToPb(&entity),
+	}, nil
+}
+
+func (s *{{capitalize name}}Service) Delete{{capitalize name}}(ctx context.Context, req *pb.Delete{{capitalize name}}Request) (*pb.Delete{{capitalize name}}Reply, error) {
+	if err := s.repo.DB.WithContext(ctx).Delete(&models.{{capitalize name}}{}, req.Id).Error; err != nil {
+		return nil, err
+	}
+	return &pb.Delete{{capitalize name}}Reply{Message: "Success"}, nil
+}
+
+func (s *{{capitalize name}}Service) List{{capitalize name}}(ctx context.Context, req *pb.List{{capitalize name}}Request) (*pb.List{{capitalize name}}Reply, error) {
+	var results []models.{{capitalize name}}
+	var total int64
+	
+	db := s.repo.DB.WithContext(ctx).Model(&models.{{capitalize name}}{})
+	db.Count(&total)
+	
+	offset := (req.Page - 1) * req.PageSize
+	if err := db.Limit(int(req.PageSize)).Offset(int(offset)).Find(&results).Error; err != nil {
+		return nil, err
+	}
+	
+	pbResults := make([]*pb.{{capitalize name}}, len(results))
+	for i, r := range results {
+		pbResults[i] = map{{capitalize name}}ToPb(&r)
+	}
+	
+	return &pb.List{{capitalize name}}Reply{
+		Results: pbResults,
+		Total:   total,
+	}, nil
+}
+
+func map{{capitalize name}}ToPb(m *models.{{capitalize name}}) *pb.{{capitalize name}} {
+	return &pb.{{capitalize name}}{
+		Id: uint64(m.ID),
+		{{#each fields}}
+		{{capitalize name}}: {{#if (isJson type)}}string(m.{{capitalize name}}){{else}}{{#if (toProtoCast type)}}{{toProtoCast type}}(m.{{capitalize name}}){{else}}m.{{capitalize name}}{{/if}}{{/if}},
+		{{/each}}
+		CreatedAt: timestamppb.New(m.CreatedAt),
+		UpdatedAt: timestamppb.New(m.UpdatedAt),
+	}
+}

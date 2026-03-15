@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{appName}} - Developer Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    <style>
+        html { scroll-behavior: smooth; }
+        .sidebar { height: calc(100vh - 4rem); }
+        .content-section { margin-bottom: 4rem; padding-top: 4rem; margin-top: -4rem; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased">
+    <!-- Navbar -->
+    <nav class="bg-indigo-600 text-white shadow-lg fixed w-full z-10 top-0 h-16 flex items-center px-6">
+        <div class="text-xl font-bold">{{appName}} <span class="text-indigo-200 text-sm font-normal">Developer Guide</span></div>
+    </nav>
+
+    <div class="flex max-w-8xl mx-auto pt-16">
+        <!-- Sidebar -->
+        <aside class="w-64 fixed sidebar overflow-y-auto bg-white border-r border-gray-200 p-6 hidden md:block">
+            <h3 class="font-bold text-gray-400 uppercase text-xs tracking-wider mb-4">Table of Contents</h3>
+            <ul class="space-y-2">
+                <li><a href="#quick-start" class="text-gray-600 hover:text-indigo-600 hover:font-medium transition-colors">Quick Start</a></li>
+                <li class="pt-2 pb-1"><span class="font-semibold text-gray-800">1. Core & Generic Layers</span></li>
+                <li><a href="#rest-api" class="text-gray-600 hover:text-indigo-600 hover:font-medium transition-colors pl-4 block">REST APIs & Search</a></li>
+                <li><a href="#audit-metering" class="text-gray-600 hover:text-indigo-600 hover:font-medium transition-colors pl-4 block">Audit & Metering</a></li>
+                <li class="pt-2 pb-1"><span class="font-semibold text-gray-800">2. Real-Time & Kratos</span></li>
+                <li><a href="#websockets" class="text-gray-600 hover:text-indigo-600 hover:font-medium transition-colors pl-4 block">WebSockets (REST-over-WS)</a></li>
+                <li><a href="#mqtt" class="text-gray-600 hover:text-indigo-600 hover:font-medium transition-colors pl-4 block">MQTT Event Streaming</a></li>
+                <li><a href="#grpc-kratos" class="text-gray-600 hover:text-indigo-600 hover:font-medium transition-colors pl-4 block">Kratos gRPC APIs</a></li>
+                <li class="pt-2 pb-1"><span class="font-semibold text-gray-800">3. GraphQL</span></li>
+                <li><a href="#graphql" class="text-gray-600 hover:text-indigo-600 hover:font-medium transition-colors pl-4 block">GraphQL Integration</a></li>
+                <li class="pt-2 pb-1"><span class="font-semibold text-gray-800">4. Resilience & Security</span></li>
+                <li><a href="#resilience-cache" class="text-gray-600 hover:text-indigo-600 hover:font-medium transition-colors pl-4 block">Caching & Circuit Breakers</a></li>
+                <li><a href="#security" class="text-gray-600 hover:text-indigo-600 hover:font-medium transition-colors pl-4 block">Keycloak OIDC & Multi-tenancy</a></li>
+                <li class="pt-2 pb-1"><span class="font-semibold text-gray-800">5. Observability</span></li>
+                <li><a href="#observability" class="text-gray-600 hover:text-indigo-600 hover:font-medium transition-colors pl-4 block">OTel & Datadog</a></li>
+                <li class="pt-2 pb-1"><span class="font-semibold text-gray-800">6. Migrations</span></li>
+                <li><a href="#liquibase" class="text-gray-600 hover:text-indigo-600 hover:font-medium transition-colors pl-4 block">Liquibase & GDL</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 md:ml-64 p-8 lg:p-12 max-w-5xl">
+            <h1 class="text-4xl font-extrabold text-gray-900 mb-4">{{appName}} API & Integration Guide</h1>
+            <p class="text-lg text-gray-600 mb-8">Welcome to the developer documentation for your GO-DUCK generated microservice. This guide covers how to connect, authenticate, and integrate with all the implemented features (The 200% Milestone).</p>
+
+            <!-- Quick Start -->
+            <section id="quick-start" class="content-section">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Quick Start</h2>
+                <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6 rounded-r">
+                    <p class="text-indigo-900"><strong>Note:</strong> Most APIs are secured by Keycloak JWT. You will need a valid token to access them.</p>
+                </div>
+                <h3 class="font-semibold mb-2">Running the application:</h3>
+                <pre><code class="language-bash"># Start local infrastructure (DB, Redis, MQTT, Keycloak, Jaeger/OTel)
+docker-compose up -d
+
+# Run the Go app (starts on port 8080 by default)
+go run main.go</code></pre>
+            </section>
+
+            <!-- REST & Search -->
+            <section id="rest-api" class="content-section">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">1. REST APIs & Generic Search</h2>
+                <p class="mb-4">The application provides standard RESTful CRUD endpoints for all generated entities (e.g., {{#if entities.length}}{{entities.[0].name}}{{else}}Entity{{/if}}).</p>
+                
+                <h3 class="font-semibold mb-2">Standard CRUD:</h3>
+                <pre><code class="language-http">GET /api/{{#if entities.length}}{{toLowerCase entities.[0].name}}s{{else}}entities{{/if}}?page=1&pageSize=10
+POST /api/{{#if entities.length}}{{toLowerCase entities.[0].name}}s{{else}}entities{{/if}}
+PUT /api/{{#if entities.length}}{{toLowerCase entities.[0].name}}s{{else}}entities{{/if}}/:id
+DELETE /api/{{#if entities.length}}{{toLowerCase entities.[0].name}}s{{else}}entities{{/if}}/:id</code></pre>
+
+                <h3 class="font-semibold mb-2 mt-6">PostgREST-like Generic Search:</h3>
+                <p class="mb-2">We expose a dynamic search endpoint allowing powerful querying directly from the frontend.</p>
+                <pre><code class="language-bash">curl -X GET "http://localhost:8080/api/rpc/{{#if entities.length}}{{toLowerCase entities.[0].name}}{{else}}your_table{{/if}}?name=eq.John&age=gt.18" \
+  -H "Authorization: Bearer YOUR_JWT" \
+  -H "X-Tenant-ID: tenant_1"</code></pre>
+                <p class="text-sm text-gray-500 mt-2">Supported operators: <code>eq, neq, gt, gte, lt, lte, like, ilike</code></p>
+            </section>
+
+            <!-- Audit & Metering -->
+            <section id="audit-metering" class="content-section">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Audit & Metering</h2>
+                <p class="mb-4">Entity mutations are automatically tracked via the <code>AuditMiddleware</code>. Usage limits per-tenant can be managed via the Metering API.</p>
+                <pre><code class="language-bash"># View Audit Logs
+curl -X GET http://localhost:8080/api/audit -H "Authorization: Bearer YOUR_JWT"
+
+# View Usage for Current Tenant
+curl -X GET http://localhost:8080/api/metering/usage -H "Authorization: Bearer YOUR_JWT" -H "X-Tenant-ID: my_tenant"</code></pre>
+            </section>
+
+            <!-- WebSockets -->
+            <section id="websockets" class="content-section">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">2. WebSockets (REST-over-WS)</h2>
+                <p class="mb-4">A high-performance WebSocket dispatcher is available at <code>/ws</code>. It supports JWT authentication during connection and requires HMAC-SHA256 signatures for message integrity.</p>
+                
+                <h3 class="font-semibold mb-2">Connecting via JS:</h3>
+                <pre><code class="language-javascript">const token = 'YOUR_JWT_TOKEN';
+// Pass token as query param for auth
+const ws = new WebSocket(`ws://localhost:8080/ws?token=${token}`);
+
+ws.onopen = () => {
+  // Sending a signed Traced Envelope
+  ws.send(JSON.stringify({
+    TraceID: "trace-123",
+    Method: "GET",
+    Path: "/api/{{#if entities.length}}{{toLowerCase entities.[0].name}}s{{else}}entities{{/if}}",
+    Payload: "{}",
+    Signature: "hmac_sha256_hash_of_payload" // Verified on server
+  }));
+};
+
+ws.onmessage = (event) => console.log("Received:", event.data);</code></pre>
+            </section>
+
+            <!-- MQTT -->
+            <section id="mqtt" class="content-section">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">MQTT Event Streaming</h2>
+                <p class="mb-4">Successful CRUD operations (Create, Update, Delete) are published as JSON payloads to the MQTT broker. This is perfect for webhooks, async processing, or triggering other microservices.</p>
+                <pre><code class="language-bash"># Using mosquitto_sub to listen to events
+mosquitto_sub -h localhost -p 1883 -t "go-duck/events/#" -u dev_user -P dev_password</code></pre>
+                <p class="text-sm mt-2">Example topic: <code>go-duck/events/{{#if entities.length}}{{toLowerCase entities.[0].name}}{{else}}entity{{/if}}/CREATE</code></p>
+            </section>
+
+            <!-- Kratos gRPC -->
+            <section id="grpc-kratos" class="content-section">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Kratos Secured gRPC APIs</h2>
+                <p class="mb-4">The application runs a Kratos gRPC server on <code>port 9000</code> by default, sharing the internal repository with Gin. It validates Keycloak JWTs via Kratos middleware.</p>
+                <h3 class="font-semibold mb-2">Calling the gRPC Service (Go Client Example):</h3>
+                <pre><code class="language-go">import (
+    "context"
+    "google.golang.org/grpc"
+    "golang.org/x/oauth2"
+    "google.golang.org/grpc/credentials/oauth"
+    pb "{{appName}}/api/v1"
+)
+
+// The JWT must be generated using the Keycloak secret configured in the app
+token := oauth.TokenSource{TokenSource: oauth2.StaticTokenSource(&oauth2.Token{AccessToken: "YOUR_JWT"})}
+
+conn, err := grpc.Dial("localhost:9000", grpc.WithInsecure(), grpc.WithPerRPCCredentials(token))
+client := pb.New{{#if entities.length}}{{capitalize entities.[0].name}}{{else}}Entity{{/if}}ServiceClient(conn)
+
+// Execute Call
+res, err := client.Get{{#if entities.length}}{{capitalize entities.[0].name}}{{else}}Entity{{/if}}(context.Background(), &pb.Get{{#if entities.length}}{{capitalize entities.[0].name}}{{else}}Entity{{/if}}Request{Id: 1})
+</code></pre>
+            </section>
+
+            <!-- GraphQL -->
+            <section id="graphql" class="content-section">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">3. GraphQL Integration</h2>
+                <p class="mb-4">A single unified GraphQL endpoint is available at <code>POST /graphql</code>. It integrates with GORM for efficient queries.</p>
+                <h3 class="font-semibold mb-2">Example Query:</h3>
+                <pre><code class="language-graphql">query {
+  get{{#if entities.length}}{{capitalize entities.[0].name}}{{else}}Entity{{/if}}(id: 1) {
+    id
+    {{#if entities.length}}
+      {{#if entities.[0].fields.length}}
+        {{entities.[0].fields.[0].name}}
+      {{/if}}
+    {{/if}}
+  }
+}</code></pre>
+                <h3 class="font-semibold mb-2 mt-4">Example Request via Fetch:</h3>
+                <pre><code class="language-javascript">fetch('http://localhost:8080/graphql', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ query: 'query { list{{#if entities.length}}{{capitalize entities.[0].name}}s{{else}}Entities{{/if}} { id } }' })
+}).then(res => res.json()).then(console.log);</code></pre>
+            </section>
+
+            <!-- Caching & Circuit Breakers -->
+            <section id="resilience-cache" class="content-section">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">4. Resilience & Caching</h2>
+                <h3 class="font-semibold mb-2">Distributed Redis Caching</h3>
+                <p class="mb-4">The application uses Cache-Aside logic built on top of Redis. The <code>cache.GetOrSet</code> function handles tenant-prefixed caching to prevent data spillage between tenants.</p>
+                
+                <h3 class="font-semibold mb-2">Circuit Breakers (Sony/Gobreaker)</h3>
+                <p class="mb-4">Failing network calls (like to the Database or Redis) are wrapped in Circuit Breakers. If the failure threshold is crossed, the circuit "opens" and immediately fails fast to prevent cascading failures.</p>
+            </section>
+
+            <!-- Security & Multi-tenancy -->
+            <section id="security" class="content-section">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Security, OIDC & Multi-tenancy</h2>
+                <p class="mb-4">All `/api` endpoints are protected by <code>JWTMiddleware</code>.</p>
+                <ul class="list-disc pl-6 space-y-2 mb-4">
+                    <li>Tokens are verified against the Keycloak Secret (defined in <code>application.yml</code>).</li>
+                    <li><code>TenantMiddleware</code> reads the <code>X-Tenant-ID</code> header and dynamically routes the GORM connection to the tenant's specific database schema (if Multi-tenancy is fully implemented) or injects the Tenant ID into the request context.</li>
+                    <li>Rate Limiting protects burst traffic (configurable in YAML).</li>
+                </ul>
+            </section>
+
+            <!-- Observability -->
+            <section id="observability" class="content-section">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">5. Observability (OTel & Datadog)</h2>
+                <p class="mb-4">The application uses OpenTelemetry for full-stack tracing (HTTP -> Gin Controller -> GORM DB Plugin -> PostgREST search).</p>
+                <ul class="list-disc pl-6 space-y-2 mb-4">
+                    <li>Traces are exported over gRPC to the local <code>otel-collector</code> on port <code>4317</code>.</li>
+                    <li>You can visualize these traces locally via Jaeger (<code>http://localhost:16686</code>).</li>
+                    <li>Datadog logging is implemented in the <code>logger</code> package and can be enabled via <code>application-prod.yml</code>.</li>
+                </ul>
+            </section>
+
+            <!-- Liquibase & GDL -->
+            <section id="liquibase" class="content-section">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">6. Advanced Migrations & GDL</h2>
+                <p class="mb-4">Running <code>go-duck import-gdl</code> calculates stateful differences using the `.go-duck/` snapshot folder. It generates atomic, timestamped Liquibase XML changelogs in <code>migrations/liquibase/changelogs/</code>.</p>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li>The application auto-generates <code>master.xml</code> dynamically without "ghost" references.</li>
+                    <li>Includes smart nullability and automatic indexing for Foreign Keys.</li>
+                    <li><strong>Needle Support:</strong> We inject `// go-duck-needle-*` markers in <code>main.go</code> and <code>grpc.go</code> for safe evolutionary code additions without destroying manual updates.</li>
+                </ul>
+            </section>
+
+            <footer class="mt-12 pt-6 border-t border-gray-200 text-center text-gray-500 text-sm pb-12">
+                Generated with ❤️ by GO-DUCK CLI
+            </footer>
+        </main>
+    </div>
+</body>
+</html>

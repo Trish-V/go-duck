@@ -1,0 +1,51 @@
+<h1 class="text-4xl font-extrabold text-gray-900 mb-4">GraphQL Integration</h1>
+<p class="text-lg text-gray-600 mb-8">Access all generated GDL entities through a single unified endpoint with high-efficiency queries.</p>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Single Unified Endpoint</h2>
+    <p class="mb-4">Rather than relying entirely on REST endpoints, your application supports GraphQL via <code>POST /graphql</code>.</p>
+    
+    <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6 rounded-r">
+        <p class="text-indigo-900"><strong>Note:</strong> Just like REST, GraphQL requires standard Keycloak JWT headers to be attached to queries and mutations!</p>
+    </div>
+
+    <pre><code class="language-graphql"># Example: Querying Multiple Data Models (GORM Relational Mapping Handles JOINs)
+query {
+  get{{capitalize (defaultStr (lookup entities "0.name") "Entity")}}(id: 1) {
+    id
+    {{#if entities.length}}
+      {{#if entities.[0].fields.length}}
+        {{entities.[0].fields.[0].name}}
+      {{/if}}
+    {{/if}}
+  }
+}</code></pre>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Working with Frontend Libraries</h2>
+    <p class="mb-4">Here is how to seamlessly execute your generated queries inside modern JavaScript frameworks using <code>fetch</code>.</p>
+    
+    <pre><code class="language-javascript">const fetchEntity = async () => {
+  const query = \`
+    query {
+      list{{capitalize (defaultStr (lookup entities "0.name") "Entity")}}s(page: 1, size: 5) {
+        id
+        {{#if entities.length}}{{#if entities.[0].fields.length}}{{entities.[0].fields.[0].name}}{{/if}}{{/if}}
+      }
+    }
+  \`;
+
+  const response = await fetch('http://localhost:8080/graphql', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer YOUR_JWT'
+    },
+    body: JSON.stringify({ query })
+  });
+  
+  const { data } = await response.json();
+  console.log('Result array:', data);
+};</code></pre>
+</section>

@@ -1,0 +1,64 @@
+{{#each entities}}
+type {{name}} {
+id: ID!
+{{#each fields}}
+{{name}}: {{gql_type type}}{{#if required}}!{{/if}}
+{{/each}}
+{{#if (eq annotation "@Audited")}}
+createdBy: String
+createdDate: String
+lastModifiedBy: String
+lastModifiedDate: String
+lastModifiedUserId: String
+{{/if}}
+{{#each relationships}}
+{{#if (eq from.entity ../name)}}
+{{from.field}}: [{{capitalize to.entity}}]
+{{else}}
+{{to.field}}: {{capitalize from.entity}}
+{{/if}}
+{{/each}}
+createdAt: String
+updatedAt: String
+}
+
+input Create{{name}}Input {
+{{#each fields}}
+{{name}}: {{gql_type type}}{{#if required}}!{{/if}}
+{{/each}}
+{{#each relationships}}
+{{#if (eq to.entity ../name)}}
+{{to.field}}Id: ID!
+{{/if}}
+{{/each}}
+}
+
+input Update{{name}}Input {
+{{#each fields}}
+{{name}}: {{gql_type type}}
+{{/each}}
+}
+{{/each}}
+
+{{#each enums}}
+enum {{name}} {
+{{#each values}}
+  {{this}}
+{{/each}}
+}
+{{/each}}
+
+type Query {
+{{#each entities}}
+get{{capitalize name}}(id: ID!): {{name}}
+list{{capitalize name}}s(page: Int, size: Int): [{{name}}]
+{{/each}}
+}
+
+type Mutation {
+{{#each entities}}
+create{{capitalize name}}(input: Create{{name}}Input!): {{name}}
+update{{capitalize name}}(id: ID!, input: Update{{name}}Input!): {{name}}
+delete{{capitalize name}}(id: ID!): Boolean
+{{/each}}
+}

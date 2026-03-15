@@ -22,6 +22,10 @@ import (
 "go-duck/cache"
 "go-duck/resilience"
 "go-duck/internal/telemetry"
+"go-duck/internal/repository"
+"go-duck/internal/server"
+k_grpc "github.com/go-kratos/kratos/v2/transport/grpc"
+// go-duck-needle-add-import
 )
 
 func main() {
@@ -56,6 +60,7 @@ masterDB, err := gorm.Open(postgres.Open(appConfig.GetDSN()), &gorm.Config{})
 if err != nil {
 log.Fatalf("Failed to connect to master database: %v", err)
 }
+// go-duck-needle-add-init-server
 
 // Inject GORM OTel Plugin
 if err := masterDB.Use(tracing.NewPlugin()); err != nil {
@@ -66,6 +71,20 @@ sqlDB, _ := masterDB.DB()
 sqlDB.SetMaxOpenConns(appConfig.GoDuck.Datasource.MaxOpenConns)
 sqlDB.SetMaxIdleConns(appConfig.GoDuck.Datasource.MaxIdleConns)
 sqlDB.SetConnMaxLifetime(appConfig.GoDuck.Datasource.ConnMaxLifetime)
+
+// 8. Initialize Repository
+repo := repository.NewRepository(masterDB)
+// go-duck-needle-add-init-repository
+
+// 9. Initialize & Start Kratos gRPC Server (in background)
+go func() {
+    grpcSrv := server.NewGRPCServer(appConfig, repo)
+    logger.Info("Starting Kratos gRPC server on %s", appConfig.GoDuck.Server.GRPC.Addr)
+    if err := grpcSrv.Start(context.Background()); err != nil {
+        logger.Error("Failed to start Kratos gRPC server: %v", err)
+    }
+}()
+// go-duck-needle-add-grpc-start
 
 r := gin.Default()
 
@@ -156,6 +175,7 @@ api.GET("/persons/:id", personCtrl.GetByID)
 api.PUT("/persons/:id", personCtrl.Update)
 api.PATCH("/persons/:id", personCtrl.Patch)
 api.DELETE("/persons/:id", personCtrl.Delete)
+// go-duck-needle-add-route
 }
 
 // 10. GraphQL

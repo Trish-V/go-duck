@@ -400,6 +400,9 @@
           "color": {
             "type": "string"
           },
+          "features": {
+            "type": "string"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -416,13 +419,19 @@
           "id": {
             "type": "integer"
           },
-          "name": {
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "email": {
             "type": "string"
           },
           "age": {
             "type": "integer"
           },
-          "email": {
+          "preferences": {
             "type": "string"
           },
           "createdAt": {

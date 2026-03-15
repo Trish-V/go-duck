@@ -1,20 +1,20 @@
-
-@AutoWired
-entity Car{
-    name String required
-    model String required
-    year Integer required
-    price Float required
-    color String
+@Audited entity Car {
+  name String required unique
+  model String required
+  year Integer
+  price BigDecimal
+  color String(50)
+  features JSONB
 }
 
-@AutoWired
-entity Person{
-    name String required
-    age Integer required
-    email String required
+entity Person {
+  firstName String required
+  lastName String
+  email String unique
+  age Integer
+  preferences JSON
 }
 
 relationship OneToMany {
-    Person{cars} to Car{person}
+  Person{car} to Car{owner} required
 }

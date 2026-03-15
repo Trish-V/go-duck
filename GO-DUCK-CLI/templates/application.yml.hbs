@@ -1,0 +1,18 @@
+spring:
+  profiles:
+    active: @spring.profiles.active@
+  datasource:
+    url: jdbc:postgresql://localhost:5432/{{name}}
+    username: {{security.keycloak-client-id}}
+    password: {{security.keycloak-secret}}
+    driver-class-name: org.postgresql.Driver
+
+keycloak:
+  auth-server-url: {{security.keycloak-host}}
+  realm: {{security.keycloak-realm}}
+  resource: {{security.keycloak-client-id}}
+  credentials:
+    secret: {{security.keycloak-secret}}
+
+multitenancy:
+  enabled: {{multitenancy.enabled}}

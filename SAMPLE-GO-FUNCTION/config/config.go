@@ -19,6 +19,11 @@ type Config struct {
 			Port         int           `mapstructure:"port"`
 			ReadTimeout  time.Duration `mapstructure:"read-timeout"`
 			WriteTimeout time.Duration `mapstructure:"write-timeout"`
+			GRPC struct {
+				Addr    string        `mapstructure:"addr"`
+				Network string        `mapstructure:"network"`
+				Timeout time.Duration `mapstructure:"timeout"`
+			} `mapstructure:"grpc"`
 			CORS struct {
 				AllowOrigins []string `mapstructure:"allow-origins"`
 				AllowMethods []string `mapstructure:"allow-methods"`
@@ -129,6 +134,9 @@ func LoadConfig() (*Config, error) {
 	v.SetDefault("go-duck.telemetry.otel.enabled", false)
 	v.SetDefault("go-duck.telemetry.otel.endpoint", "localhost:4317")
 	v.SetDefault("go-duck.telemetry.otel.sampler-ratio", 1.0)
+	v.SetDefault("go-duck.server.grpc.addr", ":9000")
+	v.SetDefault("go-duck.server.grpc.network", "tcp")
+	v.SetDefault("go-duck.server.grpc.timeout", "1s")
 	v.SetDefault("go-duck.resilience.circuit-breaker.enabled", true)
 	v.SetDefault("go-duck.resilience.circuit-breaker.failure-threshold", 5)
 	v.SetDefault("go-duck.resilience.circuit-breaker.timeout", "60s")

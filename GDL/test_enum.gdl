@@ -1,0 +1,19 @@
+@Audited
+entity Article {
+  title String required unique
+  content Text required
+  status ArticleStatus required
+  publishedDate LocalDate
+}
+
+enum ArticleStatus {
+  DRAFT, PUBLISHED, ARCHIVED
+}
+
+entity Author {
+  name String required
+}
+
+relationship OneToMany {
+  Author{article} to Article{author} required
+}

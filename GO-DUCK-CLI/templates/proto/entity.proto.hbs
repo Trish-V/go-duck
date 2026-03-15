@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package api.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "{{projectName}}/api/v1;v1";
+
+service {{capitalize name}}Service {
+  rpc Create{{capitalize name}} (Create{{capitalize name}}Request) returns ({{capitalize name}}Reply) {
+    option (google.api.http) = {
+      post: "/v1/{{lower name}}"
+      body: "*"
+    };
+  }
+  rpc Update{{capitalize name}} (Update{{capitalize name}}Request) returns ({{capitalize name}}Reply) {
+    option (google.api.http) = {
+      put: "/v1/{{lower name}}/{id}"
+      body: "*"
+    };
+  }
+  rpc Delete{{capitalize name}} (Delete{{capitalize name}}Request) returns (Delete{{capitalize name}}Reply) {
+    option (google.api.http) = {
+      delete: "/v1/{{lower name}}/{id}"
+    };
+  }
+  rpc Get{{capitalize name}} (Get{{capitalize name}}Request) returns ({{capitalize name}}Reply) {
+    option (google.api.http) = {
+      get: "/v1/{{lower name}}/{id}"
+    };
+  }
+  rpc List{{capitalize name}} (List{{capitalize name}}Request) returns (List{{capitalize name}}Reply) {
+    option (google.api.http) = {
+      get: "/v1/{{lower name}}"
+    };
+  }
+}
+
+message {{capitalize name}} {
+  uint64 id = 1;
+  {{#each fields}}
+  {{toProtoType type}} {{name}} = {{add @index 2}};
+  {{/each}}
+  google.protobuf.Timestamp created_at = 100;
+  google.protobuf.Timestamp updated_at = 101;
+}
+
+message Create{{capitalize name}}Request {
+  {{#each fields}}
+  {{toProtoType type}} {{name}} = {{add @index 1}};
+  {{/each}}
+}
+
+message Update{{capitalize name}}Request {
+  uint64 id = 1;
+  {{#each fields}}
+  {{toProtoType type}} {{name}} = {{add @index 2}};
+  {{/each}}
+}
+
+message Delete{{capitalize name}}Request {
+  uint64 id = 1;
+}
+
+message Delete{{capitalize name}}Reply {
+  string message = 1;
+}
+
+message Get{{capitalize name}}Request {
+  uint64 id = 1;
+}
+
+message {{capitalize name}}Reply {
+  {{capitalize name}} data = 1;
+}
+
+message List{{capitalize name}}Request {
+  int32 page = 1;
+  int32 page_size = 2;
+  string query = 3;
+}
+
+message List{{capitalize name}}Reply {
+  repeated {{capitalize name}} results = 1;
+  int64 total = 2;
+}
+{{#each enums}}
+enum {{capitalize name}} {
+  {{capitalize name}}_UNSPECIFIED = 0;
+{{#each values}}
+  {{capitalize ../name}}_{{this}} = {{add @index 1}};
+{{/each}}
+}
+{{/each}}

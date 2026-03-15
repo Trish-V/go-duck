@@ -5,5 +5,6 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
-    <include file="changelogs/changelog-20260308-create-car-person__add-relations.xml" relativeToChangelogFile="true"/>
+    <include file="changelogs/changelog-20260315-create-car-person__add-relations.xml" relativeToChangelogFile="true"/>
+    <include file="changelogs/changelog-20260315-create-article-author__add-relations.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

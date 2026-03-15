@@ -1,27 +1,45 @@
 {
   "name": "Person",
-  "annotation": "@AutoWired",
   "fields": [
     {
-      "name": "name",
+      "name": "firstName",
       "type": "String",
       "required": true,
       "unique": false,
+      "isEnum": false,
+      "varcharSize": 255
+    },
+    {
+      "name": "lastName",
+      "type": "String",
+      "required": false,
+      "unique": false,
+      "isEnum": false,
+      "varcharSize": 255
+    },
+    {
+      "name": "email",
+      "type": "String",
+      "required": false,
+      "unique": true,
+      "isEnum": false,
       "varcharSize": 255
     },
     {
       "name": "age",
       "type": "Integer",
-      "required": true,
+      "required": false,
       "unique": false,
+      "isEnum": false,
       "varcharSize": null
     },
     {
-      "name": "email",
-      "type": "String",
-      "required": true,
+      "name": "preferences",
+      "type": "JSON",
+      "required": false,
       "unique": false,
-      "varcharSize": 255
+      "isEnum": false,
+      "varcharSize": null
     }
   ],
   "relationships": [
@@ -29,14 +47,15 @@
       "type": "OneToMany",
       "from": {
         "entity": "Person",
-        "field": "cars"
+        "field": "car"
       },
       "to": {
         "entity": "Car",
-        "field": "person"
+        "field": "owner"
       },
-      "required": false
+      "required": true
     }
   ],
-  "app_name": "go-duck"
+  "app_name": "go-duck",
+  "enums": []
 }

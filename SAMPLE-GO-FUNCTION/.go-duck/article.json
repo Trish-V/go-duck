@@ -1,0 +1,63 @@
+{
+  "name": "Article",
+  "annotation": "@Audited",
+  "fields": [
+    {
+      "name": "title",
+      "type": "String",
+      "required": true,
+      "unique": true,
+      "isEnum": false,
+      "varcharSize": 255
+    },
+    {
+      "name": "content",
+      "type": "Text",
+      "required": true,
+      "unique": false,
+      "isEnum": false,
+      "varcharSize": null
+    },
+    {
+      "name": "status",
+      "type": "ArticleStatus",
+      "required": true,
+      "unique": false,
+      "isEnum": true,
+      "varcharSize": null
+    },
+    {
+      "name": "publishedDate",
+      "type": "LocalDate",
+      "required": false,
+      "unique": false,
+      "isEnum": false,
+      "varcharSize": null
+    }
+  ],
+  "relationships": [
+    {
+      "type": "OneToMany",
+      "from": {
+        "entity": "Author",
+        "field": "article"
+      },
+      "to": {
+        "entity": "Article",
+        "field": "author"
+      },
+      "required": true
+    }
+  ],
+  "app_name": "go-duck",
+  "enums": [
+    {
+      "name": "ArticleStatus",
+      "values": [
+        "DRAFT",
+        "PUBLISHED",
+        "ARCHIVED"
+      ]
+    }
+  ]
+}

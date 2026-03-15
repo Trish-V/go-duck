@@ -1,0 +1,83 @@
+<h1 class="text-4xl font-extrabold text-gray-900 mb-4">Frontend Integrations</h1>
+<p class="text-lg text-gray-600 mb-8">Ready-to-use snippets to wire up leading frontend frameworks to your ultra-fast API backend seamlessly.</p>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">1. Angular (TypeScript)</h2>
+    <p class="mb-4">Angular natively employs RxJS `HttpInterceptor` abstractions, making connecting to your GO-DUCK APIs simple.</p>
+    
+    <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6 rounded-r">
+        <p class="text-indigo-900"><strong>Note:</strong> We bypass typical manual HTTP Auth mapping by using Angular's pre-built <code>keycloak-angular</code> ecosystem package.</p>
+    </div>
+
+    <h3 class="font-semibold mb-2 mt-6">Creating a Service for {{capitalize (defaultStr (lookup entities "0.name") "Entity")}}</h3>
+    <pre><code class="language-typescript">import { Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common';
+import { Observable } from 'rxjs';
+
+export interface {{capitalize (defaultStr (lookup entities "0.name") "Entity")}} {
+  id: number;
+{{#if entities.length}}
+  {{#each entities.0.fields}}
+  {{name}}: any;
+  {{/each}}
+{{/if}}
+}
+
+@Injectable({ providedIn: 'root' })
+export class {{capitalize (defaultStr (lookup entities "0.name") "Entity")}}Service {
+  private apiUrl = 'http://localhost:8080/api/{{toLowerCase (defaultStr (lookup entities "0.name") "entity")}}s';
+
+  constructor(private http: HttpClient) {}
+
+  // Standard REST Fetch with Pagination Parameters
+  getAll(page: number = 1, pageSize: number = 10): Observable&lt;any&gt; {
+    let params = new HttpParams()
+        .set('page', page.toString())
+        .set('pageSize', pageSize.toString());
+    return this.http.get&lt;any&gt;(this.apiUrl, { params });
+  }
+
+  // Example: Using the powerful Generic Search RPC Engine
+  search(queryField: string, operator: string, value: string): Observable&lt;any&gt; {
+    let params = new HttpParams().set(queryField, \`\${operator}.\${value}\`);
+    return this.http.get&lt;any&gt;('http://localhost:8080/api/rpc/{{toLowerCase (defaultStr (lookup entities "0.name") "entity")}}', { params });
+  }
+}
+</code></pre>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">2. Flutter (Dart)</h2>
+    <p class="mb-4">Connecting a cross-platform mobile app requires managing state efficiently. Here's a raw HTTP Dart integration model you can bind to Provider, Riverpod, or BLoC patterns seamlessly over your Keycloak environment.</p>
+    
+    <pre><code class="language-dart">import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+class ApiProvider {
+  static const String baseUrl = "http://localhost:8080/api/{{toLowerCase (defaultStr (lookup entities "0.name") "entity")}}s";
+  final storage = const FlutterSecureStorage();
+
+  // Retrieve Keycloak Bearer token from secure storage
+  Future&lt;Map&lt;String, String&gt;&gt; _getHeaders() async {
+    String? token = await storage.read(key: 'jwt_token');
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+      'X-Tenant-ID': 'default', // If using Multi-Tenancy module
+    };
+  }
+
+  // Fetch API collection
+  Future&lt;List&lt;dynamic&gt;&gt; fetch{{capitalize (defaultStr (lookup entities "0.name") "Entity")}}s() async {
+    final response = await http.get(Uri.parse(baseUrl), headers: await _getHeaders());
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['results']; 
+    } else {
+      throw Exception('Failed to load data. Res code: \${response.statusCode}');
+    }
+  }
+}
+</code></pre>
+</section>

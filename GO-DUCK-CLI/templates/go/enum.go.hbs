@@ -1,0 +1,7 @@
+type {{name}} string
+
+const (
+{{#each values}}
+    {{../name}}_{{this}} {{../name}} = "{{this}}"
+{{/each}}
+)

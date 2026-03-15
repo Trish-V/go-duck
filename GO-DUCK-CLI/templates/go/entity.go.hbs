@@ -1,0 +1,34 @@
+package models
+
+import (
+"time"
+{{#if (hasJson fields)}}
+"gorm.io/datatypes"
+{{/if}}
+)
+
+type {{name}} struct {
+ID uint `gorm:"primaryKey" json:"id"`
+{{#each fields}}
+{{capitalize name}} {{toGoType type}} `{{#if unique}}gorm:"uniqueIndex" {{/if}}{{#if (isJson type)}}gorm:"type:{{toLowerCase type}};serializer:json" {{/if}}json:"{{name}}" {{#if required}}binding:"required"{{/if}}`
+{{/each}}
+{{#if (eq annotation "@Audited")}}
+CreatedBy string `gorm:"column:created_by" json:"createdBy"`
+CreatedDate time.Time `gorm:"column:created_date" json:"createdDate"`
+LastModifiedBy string `gorm:"column:last_modified_by" json:"lastModifiedBy"`
+LastModifiedDate time.Time `gorm:"column:last_modified_date" json:"lastModifiedDate"`
+LastModifiedUserID string `gorm:"column:last_modified_user_id" json:"lastModifiedUserId"`
+{{else}}
+CreatedAt time.Time `gorm:"autoCreateTime" json:"createdAt"`
+UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updatedAt"`
+{{/if}}
+{{#each relationships}}
+{{#if (eq from.entity ../name)}}
+{{capitalize from.field}} []{{capitalize to.entity}} `gorm:"foreignKey:{{capitalize to.field}}ID" json:"{{from.field}}"`
+{{else}}
+{{capitalize to.field}}ID *uint `gorm:"column:{{to.field}}_id;index" json:"{{to.field}}Id"`
+{{capitalize to.field}} *{{capitalize from.entity}} `gorm:"foreignKey:{{capitalize to.field}}ID"
+json:"{{to.field}},omitempty"`
+{{/if}}
+{{/each}}
+}
