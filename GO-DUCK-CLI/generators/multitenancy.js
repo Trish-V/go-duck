@@ -17,7 +17,10 @@ import (
 
 func TenantMiddleware(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 1. Get roles from JWT (previously set by JWTMiddleware)
+		// 1. Get Requested Tenant from Header (Hint)
+		requestedTenant := c.GetHeader("X-Tenant-ID")
+
+		// 2. Get roles from JWT (previously set by JWTMiddleware)
 		userRolesInterface, exists := c.Get("UserRoles")
 		if !exists {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "No roles found in token"})
@@ -32,16 +35,28 @@ func TenantMiddleware(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		// 2. Lookup DB name for the roles in tenant_roles table
+		// 3. Lookup AUTHORIZED DB name for these roles
 		var dbName string
 		err := db.Raw("SELECT db_name FROM tenant_roles WHERE role_name IN ? LIMIT 1", roles).Scan(&dbName).Error
 		
 		if err != nil || dbName == "" {
-			// Fallback to default DB if no role match (optional behavior)
-			dbName = "go-duck" 
+			c.JSON(http.StatusForbidden, gin.H{"error": "User does not belong to any active tenant context"})
+			c.Abort()
+			return
 		}
 
-		// 3. Store tenant info for downstream use
+		// 4. SECURITY CROSS-CHECK: 
+		// If a tenant header is provided, it MUST match the database derived from the token.
+		// This prevents "Tenant Spoofing" attacks.
+		if requestedTenant != "" && requestedTenant != dbName {
+			c.JSON(http.StatusForbidden, gin.H{
+				"error": fmt.Sprintf("Security Breach: Requested tenant '%s' does not match authorized context", requestedTenant),
+			})
+			c.Abort()
+			return
+		}
+
+		// 5. Store verified tenant info for downstream use
 		c.Set("tenantDB", dbName)
 		c.Next()
 	}
