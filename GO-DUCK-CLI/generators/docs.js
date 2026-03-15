@@ -33,6 +33,7 @@ export const generateDocumentation = async (config, entities, outputDir, enums =
         { file: 'gdl', title: 'GDL Reference' },
         { file: 'cli', title: 'CLI & Code Injection' },
         { file: 'rest', title: 'REST & Search API' },
+        { file: 'multitenancy', title: 'Multi-Tenancy' },
         { file: 'grpc', title: 'Kratos gRPC API' },
         { file: 'graphql', title: 'GraphQL Framework' },
         { file: 'realtime', title: 'WebSockets & MQTT' },

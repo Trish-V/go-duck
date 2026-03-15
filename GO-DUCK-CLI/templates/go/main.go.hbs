@@ -143,7 +143,7 @@ mgmt.POST("/db/create", management.CreateDatabaseAndMigrate(masterDB))
 // 9. Secured Application APIs
 api := r.Group("/api")
 api.Use(middleware.JWTMiddleware())
-api.Use(middleware.TenantMiddleware(masterDB))
+api.Use(middleware.TenantMiddleware(masterDB, appConfig))
 api.Use(middleware.AuditMiddleware(masterDB))
 api.Use(middleware.MeteringMiddleware(masterDB))
 {

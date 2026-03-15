@@ -9,7 +9,27 @@
         <p class="text-indigo-900"><strong>Golden Rule:</strong> In <code>application-dev.yml</code>, ensure your Keycloak Realm, ClientID, and Secret are accurately synced with the local running Docker Keycloak image.</p>
     </div>
 
-    <h3 class="font-semibold mb-2 mt-6">2. Burst Protection (Rate Limiting)</h3>
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">2. Tenant Context Integrity</h2>
+    <p class="mb-4">
+        GO-DUCK implements <strong>Enterprise-Grade Data Isolation</strong>. While the <code>X-Tenant-ID</code> header is required for request context, the system is immune to "Tenant Spoofing" attacks.
+    </p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
+            <h4 class="font-bold text-slate-900 mb-2">Internal Cross-Verification</h4>
+            <p class="text-xs text-slate-600 leading-relaxed">
+                The <code>TenantMiddleware</code> extracts authorized roles from the signed JWT and performs a server-side lookup of the valid DB context. It then <strong>cross-checks</strong> this against the <code>X-Tenant-ID</code> header.
+            </p>
+        </div>
+        <div class="bg-rose-50 p-5 rounded-xl border border-rose-200">
+            <h4 class="font-bold text-rose-900 mb-2">Spoof Protection</h4>
+            <p class="text-xs text-rose-700 leading-relaxed">
+                If a user attempts to access <code>Tenant-B</code> by modifying headers while their JWT is only valid for <code>Tenant-A</code>, the request is immediately aborted with a <code>403 Forbidden - Security Breach</code> error. 
+                <a href="multitenancy.html" class="text-rose-600 font-bold hover:underline mt-2 inline-block">Learn more about isolation &rarr;</a>
+            </p>
+        </div>
+    </div>
+
+    <h3 class="font-semibold mb-2 mt-6">3. Burst Protection (Rate Limiting)</h3>
     <p class="mb-4">Using the standard <code>x/time/rate</code> package, a Token Bucket rate limiter is attached to the Gin Engine globally to mitigate DDOS vectors and abusive scripting.</p>
     <pre><code class="language-yaml"># Inside your application-prod.yml
 go-duck:

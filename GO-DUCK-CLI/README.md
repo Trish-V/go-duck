@@ -43,22 +43,21 @@ But speed without strength is a house made of cards. In the digital forge of the
 
 Thus, the **GDL (Go-Duck Language)** was hatched. A single, simple tongue that could command entire legions of code. From that day forth, every developer who whispered GDL into the CLI would see their architecture evolve—bringing the Gopher's speed, the Duck's wisdom, the Gin's clarity, and the Kratos' strength into a single, unified masterpiece.
 
-## ✨ Features Overview
+## ✨ Features Overview (The 260% Milestone)
 
-*   **Full-Stack Code Generation**: Generates everything from REST and gRPC APIs to the data access layer.
-*   **Dual-Protocol APIs**: Out-of-the-box support for both REST (Gin) and gRPC (Kratos).
-*   **Stateful Incremental Updates**: Intelligently applies changes from your GDL schema to the existing codebase.
-*   **Rich Feature Set**: Includes support for:
-    *   CRUD APIs with pagination and filtering
-    *   GraphQL integration
-    *   Real-time communication with WebSockets and MQTT
-    *   Auditing and API usage metering
-    *   JWT-based security and OIDC integration
-    *   Distributed caching with Redis
-    *   Circuit breakers for resilience
-    *   Full-stack observability with OpenTelemetry
-*   **Automated Documentation**: Generates a beautiful, multi-page HTML documentation portal for your project.
-*   **Cloud-Native**: Comes with Docker support and CI/CD pipelines using GitHub Actions.
+*   **Full-Stack Code Generation**: Generates everything from REST and gRPC (Kratos) APIs to the internal repository layer.
+*   **Dual-Protocol APIs**: Multi-protocol support (Gin/REST & Kratos/gRPC) with OIDC/JWT security enforcement.
+*   **Dynamic Multi-Tenancy**: Side-by-side **Database-pet-Tenant isolation** with Hot-Swapping Connection Pools and a verified Master-Tenant Registry.
+*   **High-Velocity Bulk Operations**: Transactional `BulkCreate`, `BulkUpdate`, and `BulkPatch` endpoints for all entities.
+*   **Deep JSON Querying**: PostgREST-like RPC engine supporting arrow operators (`->`, `->>`) for complex JSONB searches.
+*   **Stateful Incremental Updates**: Intelligently applies schema deltas to your existing codebase without data loss.
+*   **Rich Ecosystem Components**:
+    *   **Persistence**: GORM (PostgreSQL) + Liquibase migrations.
+    *   **GraphQL**: Full schema and resolver generation.
+    *   **Real-time**: Traced WebSocket envelopes & MQTT notifications.
+    *   **Resilience**: Circuit Breakers (Sony/Gobreaker) & Rate Limiting.
+    *   **Observability**: Full-stack tracing (Otelgin to Otelpgx) + Prometheus metrics.
+*   **Gorgeous Automated Documentation**: Auto-scaffolded "Apple-style" Developer Guide and High-Fidelity Swagger UI.
 
 ## 💾 Global Installation
 

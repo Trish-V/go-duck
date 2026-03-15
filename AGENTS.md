@@ -17,11 +17,12 @@
 - **Template System**: High-fidelity Handlebars templates for Go code, Protobuf definitions, and Liquibase XML.
 - **Persistence Intelligence**: Stores entity snapshots in `.go-duck/` to maintain 100% schema integrity during evolution.
 
-### Implemented Features (The 250% Milestone)
+### Implemented Features (The 260% Milestone)
 
 #### 1. Core & Generic Layers
 - **Full CRUD REST APIs**: Automatically generated with pagination, filtering, and **Eager/Lazy Loading** support via `?eager=true`.
 - **Bulk Operations**: Transactional `BulkCreate`, `BulkUpdate`, and `BulkPatch` endpoints (`/bulk`) for high-velocity data ingestion.
+- **Dynamic Multi-Tenancy**: Side-by-side **Database-per-Tenant isolation** with Hot-Swapping Connection Pools and a **Master-Tenant Registry**.
 - **Generic Search Layer**: PostgREST-like RPC endpoint (`/api/rpc/:table`) with **Deep JSON/JSONB Querying** using arrow operators (`->`, `->>`).
 - **Audit & Metering**: Automatic capturing of entity changes (via `@Audited` and `audit_log` tables) and per-tenant usage tracking.
 
@@ -34,7 +35,7 @@
 
 #### 3. Resilience & Security
 - **Circuit Breakers**: Sony/Gobreaker integration for Redis/MQTT/DB calls.
-- **OIDC/JWT Security**: Keycloak validation with dynamic context-aware multi-tenancy.
+- **OIDC/JWT Security**: Keycloak validation with **Security-Hardened Context Verification** (Anti-Spoofing).
 - **Digital Signatures**: HMAC-SHA256 verification for high-integrity WebSocket message payloads.
 - **CORS & Rate Limiting**: Property-driven policies for security and burst protection.
 

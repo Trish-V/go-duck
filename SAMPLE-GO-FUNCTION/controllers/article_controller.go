@@ -21,20 +21,20 @@ Config *config.Config
 }
 
 // CreateArticle
-func (ctrl *ArticleController) Create(c *gin.Context) {
-tenant, _ := c.Get("tenantDB")
-tenantStr := fmt.Sprintf("%v", tenant)
-ctx := c.Request.Context()
+	db := ctrl.DB
+	if tdb, exists := c.Get("tenantDBConn"); exists {
+		db = tdb.(*gorm.DB)
+	}
 
-var entity models.Article
-if err := c.ShouldBindJSON(&entity); err != nil {
-c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-return
-}
-if err := ctrl.DB.WithContext(ctx).Create(&entity).Error; err != nil {
-c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-return
-}
+	var entity models.Article
+	if err := c.ShouldBindJSON(&entity); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := db.WithContext(ctx).Create(&entity).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
 // Dynamic Cache Invalidation (Tenant Aware)
 cache.ClearPattern(tenantStr + ":Article*")
@@ -50,9 +50,13 @@ c.JSON(http.StatusCreated, entity)
 
 // GetAllArticles (with filtering, pagination, and lazy/eager loading)
 func (ctrl *ArticleController) GetAll(c *gin.Context) {
-var entities []models.Article
-ctx := c.Request.Context()
-query := ctrl.DB.WithContext(ctx)
+	db := ctrl.DB
+	if tdb, exists := c.Get("tenantDBConn"); exists {
+		db = tdb.(*gorm.DB)
+	}
+	var entities []models.Article
+	ctx := c.Request.Context()
+	query := db.WithContext(ctx)
 
 // 1. Pagination
 page, _ := strconv.Atoi(c.DefaultQuery("page", "0"))
@@ -102,8 +106,12 @@ c.JSON(http.StatusOK, entity)
 return
 }
 
-// 2. Fallback to DB (With Context for Tracing)
-query := ctrl.DB.WithContext(ctx)
+	// 2. Fallback to DB (With Context for Tracing)
+	db := ctrl.DB
+	if tdb, exists := c.Get("tenantDBConn"); exists {
+		db = tdb.(*gorm.DB)
+	}
+	query := db.WithContext(ctx)
 if c.Query("eager") == "true" {
 query = query.Preload("Article")
 query = query.Preload("Author")
@@ -124,14 +132,13 @@ c.JSON(http.StatusOK, entity)
 }
 
 // Update (PUT) - Full Update
-func (ctrl *ArticleController) Update(c *gin.Context) {
-id := c.Param("id")
-tenant, _ := c.Get("tenantDB")
-tenantStr := fmt.Sprintf("%v", tenant)
-ctx := c.Request.Context()
+	db := ctrl.DB
+	if tdb, exists := c.Get("tenantDBConn"); exists {
+		db = tdb.(*gorm.DB)
+	}
 
-var entity models.Article
-if err := ctrl.DB.WithContext(ctx).First(&entity, id).Error; err != nil {
+	var entity models.Article
+	if err := db.WithContext(ctx).First(&entity, id).Error; err != nil {
 c.JSON(http.StatusNotFound, gin.H{"error": "Resource not found"})
 return
 }
@@ -144,7 +151,7 @@ c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 return
 }
 
-if err := ctrl.DB.WithContext(ctx).Save(&entity).Error; err != nil {
+	if err := db.WithContext(ctx).Save(&entity).Error; err != nil {
 c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 return
 }
@@ -162,14 +169,13 @@ c.JSON(http.StatusOK, entity)
 }
 
 // Patch (PATCH) - Partial Update
-func (ctrl *ArticleController) Patch(c *gin.Context) {
-id := c.Param("id")
-tenant, _ := c.Get("tenantDB")
-tenantStr := fmt.Sprintf("%v", tenant)
-ctx := c.Request.Context()
+	db := ctrl.DB
+	if tdb, exists := c.Get("tenantDBConn"); exists {
+		db = tdb.(*gorm.DB)
+	}
 
-var entity models.Article
-if err := ctrl.DB.WithContext(ctx).First(&entity, id).Error; err != nil {
+	var entity models.Article
+	if err := db.WithContext(ctx).First(&entity, id).Error; err != nil {
 c.JSON(http.StatusNotFound, gin.H{"error": "Resource not found"})
 return
 }
@@ -181,13 +187,13 @@ c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 return
 }
 
-if err := ctrl.DB.WithContext(ctx).Model(&entity).Updates(updates).Error; err != nil {
+if err := db.WithContext(ctx).Model(&entity).Updates(updates).Error; err != nil {
 c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 return
 }
 
 // Fetch updated
-ctrl.DB.WithContext(ctx).First(&entity, id)
+db.WithContext(ctx).First(&entity, id)
 
 // Cache Invalidation (Tenant Aware)
 cache.Delete(fmt.Sprintf("%s:Article:%s", tenantStr, id))
@@ -202,10 +208,10 @@ c.JSON(http.StatusOK, gin.H{"message": "Updated successfully", "data": entity})
 }
 
 // BulkCreate handles creating multiple entities in one transaction
-func (ctrl *ArticleController) BulkCreate(c *gin.Context) {
-	tenant, _ := c.Get("tenantDB")
-	tenantStr := fmt.Sprintf("%v", tenant)
-	ctx := c.Request.Context()
+	db := ctrl.DB
+	if tdb, exists := c.Get("tenantDBConn"); exists {
+		db = tdb.(*gorm.DB)
+	}
 
 	var entities []models.Article
 	if err := c.ShouldBindJSON(&entities); err != nil {
@@ -213,7 +219,7 @@ func (ctrl *ArticleController) BulkCreate(c *gin.Context) {
 		return
 	}
 
-	if err := ctrl.DB.WithContext(ctx).Create(&entities).Error; err != nil {
+	if err := db.WithContext(ctx).Create(&entities).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -231,10 +237,10 @@ func (ctrl *ArticleController) BulkCreate(c *gin.Context) {
 }
 
 // BulkUpdate handles updating multiple entities in one transaction
-func (ctrl *ArticleController) BulkUpdate(c *gin.Context) {
-	tenant, _ := c.Get("tenantDB")
-	tenantStr := fmt.Sprintf("%v", tenant)
-	ctx := c.Request.Context()
+	db := ctrl.DB
+	if tdb, exists := c.Get("tenantDBConn"); exists {
+		db = tdb.(*gorm.DB)
+	}
 
 	var entities []models.Article
 	if err := c.ShouldBindJSON(&entities); err != nil {
@@ -242,7 +248,7 @@ func (ctrl *ArticleController) BulkUpdate(c *gin.Context) {
 		return
 	}
 
-	err := ctrl.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	err := db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		for _, e := range entities {
 			if err := tx.Save(&e).Error; err != nil {
 				return err
@@ -267,10 +273,10 @@ func (ctrl *ArticleController) BulkUpdate(c *gin.Context) {
 }
 
 // BulkPatch handles partial updates for multiple entities
-func (ctrl *ArticleController) BulkPatch(c *gin.Context) {
-	tenant, _ := c.Get("tenantDB")
-	tenantStr := fmt.Sprintf("%v", tenant)
-	ctx := c.Request.Context()
+	db := ctrl.DB
+	if tdb, exists := c.Get("tenantDBConn"); exists {
+		db = tdb.(*gorm.DB)
+	}
 
 	var updates []struct {
 		ID      uint                   `json:"id"`
@@ -281,7 +287,7 @@ func (ctrl *ArticleController) BulkPatch(c *gin.Context) {
 		return
 	}
 
-	err := ctrl.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	err := db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		for _, u := range updates {
 			if err := tx.Model(&models.Article{}).Where("id = ?", u.ID).Updates(u.Changes).Error; err != nil {
 				return err
@@ -300,19 +306,18 @@ func (ctrl *ArticleController) BulkPatch(c *gin.Context) {
 }
 
 // Delete
-func (ctrl *ArticleController) Delete(c *gin.Context) {
-id := c.Param("id")
-tenant, _ := c.Get("tenantDB")
-tenantStr := fmt.Sprintf("%v", tenant)
-ctx := c.Request.Context()
+	db := ctrl.DB
+	if tdb, exists := c.Get("tenantDBConn"); exists {
+		db = tdb.(*gorm.DB)
+	}
 
-var entity models.Article
-if err := ctrl.DB.WithContext(ctx).First(&entity, id).Error; err != nil {
+	var entity models.Article
+	if err := db.WithContext(ctx).First(&entity, id).Error; err != nil {
 c.JSON(http.StatusNotFound, gin.H{"error": "Resource not found"})
 return
 }
 
-if err := ctrl.DB.WithContext(ctx).Delete(&entity).Error; err != nil {
+	if err := db.WithContext(ctx).Delete(&entity).Error; err != nil {
 c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 return
 }
