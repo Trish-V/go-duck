@@ -14,10 +14,13 @@ export const generateKratosCode = async (entities, projectRootDir, projectName, 
     await fs.ensureDir(serviceDir);
     await fs.ensureDir(serverDir);
 
-    const protoTemplateSource = await fs.readFile(path.join(process.cwd(), 'templates', 'proto', 'entity.proto.hbs'), 'utf8');
+    const __dirname = path.dirname(import.meta.url.replace('file://', ''));
+    const templateBase = path.resolve(__dirname, '..', 'templates');
+
+    const protoTemplateSource = await fs.readFile(path.join(templateBase, 'proto', 'entity.proto.hbs'), 'utf8');
     const protoTemplate = Handlebars.compile(protoTemplateSource);
 
-    const serviceTemplateSource = await fs.readFile(path.join(process.cwd(), 'templates', 'kratos', 'service.go.hbs'), 'utf8');
+    const serviceTemplateSource = await fs.readFile(path.join(templateBase, 'kratos', 'service.go.hbs'), 'utf8');
     const serviceTemplate = Handlebars.compile(serviceTemplateSource);
 
     // Helpers for Proto types

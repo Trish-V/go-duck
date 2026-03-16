@@ -1,0 +1,70 @@
+{
+  "name": "Car",
+  "annotation": "@Audited",
+  "fields": [
+    {
+      "name": "name",
+      "type": "String",
+      "required": true,
+      "unique": true,
+      "isEnum": false,
+      "varcharSize": 255
+    },
+    {
+      "name": "model",
+      "type": "String",
+      "required": true,
+      "unique": false,
+      "isEnum": false,
+      "varcharSize": 255
+    },
+    {
+      "name": "year",
+      "type": "Integer",
+      "required": false,
+      "unique": false,
+      "isEnum": false,
+      "varcharSize": null
+    },
+    {
+      "name": "price",
+      "type": "BigDecimal",
+      "required": false,
+      "unique": false,
+      "isEnum": false,
+      "varcharSize": null
+    },
+    {
+      "name": "color",
+      "type": "String",
+      "required": false,
+      "unique": false,
+      "isEnum": false,
+      "varcharSize": 50
+    },
+    {
+      "name": "features",
+      "type": "JSONB",
+      "required": false,
+      "unique": false,
+      "isEnum": false,
+      "varcharSize": null
+    }
+  ],
+  "relationships": [
+    {
+      "type": "OneToMany",
+      "from": {
+        "entity": "Person",
+        "field": "car"
+      },
+      "to": {
+        "entity": "Car",
+        "field": "owner"
+      },
+      "required": true
+    }
+  ],
+  "app_name": "go-duck",
+  "enums": []
+}

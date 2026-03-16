@@ -1,26 +1,32 @@
 package controllers
 
 import (
-"fmt"
-"net/http"
-"strconv"
+	"fmt"
+	"net/http"
+	"strconv"
 
-"{{app_name}}/config"
-"{{app_name}}/messaging"
-"{{app_name}}/models"
-"{{app_name}}/cache"
-"{{app_name}}/resilience"
+	"{{app_name}}/config"
+	"{{app_name}}/messaging"
+	"{{app_name}}/models"
+	"{{app_name}}/cache"
+	"{{app_name}}/resilience"
 
-"github.com/gin-gonic/gin"
-"gorm.io/gorm"
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type {{capitalize name}}Controller struct {
-DB *gorm.DB
-Config *config.Config
+	DB *gorm.DB
+	Config *config.Config
 }
 
-// Create{{capitalize name}}
+// Create handles creating a new {{capitalize name}}
+func (ctrl *{{capitalize name}}Controller) Create(c *gin.Context) {
+	id := c.Param("id") // Not used for create usually, but keeping consistency with context
+	tenant, _ := c.Get("tenantDB")
+	tenantStr := fmt.Sprintf("%v", tenant)
+	ctx := c.Request.Context()
+
 	db := ctrl.DB
 	if tdb, exists := c.Get("tenantDBConn"); exists {
 		db = tdb.(*gorm.DB)
@@ -36,19 +42,19 @@ Config *config.Config
 		return
 	}
 
-// Dynamic Cache Invalidation (Tenant Aware)
-cache.ClearPattern(tenantStr + ":{{capitalize name}}*")
+	// Dynamic Cache Invalidation (Tenant Aware)
+	cache.ClearPattern(tenantStr + ":{{capitalize name}}*")
 
-// MQTT Event (Resilient)
-resilience.Execute(func() (interface{}, error) {
-messaging.PublishEvent(ctrl.Config.GoDuck.Messaging.MQTT.TopicPrefix, "CREATE", "{{capitalize name}}", entity, nil)
-return nil, nil
-})
+	// MQTT Event (Resilient)
+	resilience.Execute(func() (interface{}, error) {
+		messaging.PublishEvent(ctrl.Config.GoDuck.Messaging.MQTT.TopicPrefix, "CREATE", "{{capitalize name}}", entity, nil)
+		return nil, nil
+	})
 
-c.JSON(http.StatusCreated, entity)
+	c.JSON(http.StatusCreated, entity)
 }
 
-// GetAll{{capitalize name}}s (with filtering, pagination, and lazy/eager loading)
+// GetAll handles fetching all {{capitalize name}}s with filtering and pagination
 func (ctrl *{{capitalize name}}Controller) GetAll(c *gin.Context) {
 	db := ctrl.DB
 	if tdb, exists := c.Get("tenantDBConn"); exists {
@@ -58,84 +64,95 @@ func (ctrl *{{capitalize name}}Controller) GetAll(c *gin.Context) {
 	ctx := c.Request.Context()
 	query := db.WithContext(ctx)
 
-// 1. Pagination
-page, _ := strconv.Atoi(c.DefaultQuery("page", "0"))
-size, _ := strconv.Atoi(c.DefaultQuery("size", "20"))
-query = query.Offset(page * size).Limit(size)
+	// 1. Pagination
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "0"))
+	size, _ := strconv.Atoi(c.DefaultQuery("size", "20"))
+	query = query.Offset(page * size).Limit(size)
 
-// 2. Eager Loading (Full Bodied) vs Lazy (IDs Only)
-eager := c.Query("eager") == "true"
-if eager {
-{{#each relationships}}
-query = query.Preload("{{capitalize from.field}}")
-query = query.Preload("{{capitalize to.field}}")
-{{/each}}
+	// 2. Eager Loading
+	eager := c.Query("eager") == "true"
+	if eager {
+		{{#each relationships}}
+		{{#if (eq from.entity ../name)}}
+		query = query.Preload("{{capitalize from.field}}")
+		{{else}}
+		query = query.Preload("{{capitalize to.field}}")
+		{{/if}}
+		{{/each}}
+	}
+
+	// 3. Simple Filtering
+	for key, values := range c.Request.URL.Query() {
+		if key == "page" || key == "size" || key == "eager" || key == "sort" {
+			continue
+		}
+		for _, val := range values {
+			query = query.Where(key+" = ?", val)
+		}
+	}
+
+	if err := query.Find(&entities).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, entities)
 }
 
-// 3. Simple Filtering (Optimized for CRUD)
-// Example: ?name=eq.John
-for key, values := range c.Request.URL.Query() {
-if key == "page" || key == "size" || key == "eager" || key == "sort" {
-continue
-}
-for _, val := range values {
-query = query.Where(key+" = ?", val)
-}
-}
-
-if err := query.Find(&entities).Error; err != nil {
-c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-return
-}
-c.JSON(http.StatusOK, entities)
-}
-
-// GetByID
+// GetByID handles fetching a single {{capitalize name}} by ID
 func (ctrl *{{capitalize name}}Controller) GetByID(c *gin.Context) {
-id := c.Param("id")
-tenant, _ := c.Get("tenantDB")
-tenantStr := fmt.Sprintf("%v", tenant)
-ctx := c.Request.Context()
+	id := c.Param("id")
+	tenant, _ := c.Get("tenantDB")
+	tenantStr := fmt.Sprintf("%v", tenant)
+	ctx := c.Request.Context()
 
-// Tenant-Aware Cache Key
-cacheKey := fmt.Sprintf("%s:{{capitalize name}}:%s", tenantStr, id)
+	// Tenant-Aware Cache Key
+	cacheKey := fmt.Sprintf("%s:{{capitalize name}}:%s", tenantStr, id)
 
-var entity models.{{capitalize name}}
+	var entity models.{{capitalize name}}
 
-// 1. Check Distributed Cache (Redis)
-if cache.Get(cacheKey, &entity) {
-c.JSON(http.StatusOK, entity)
-return
-}
+	// 1. Check Distributed Cache
+	if cache.Get(cacheKey, &entity) {
+		c.JSON(http.StatusOK, entity)
+		return
+	}
 
-	// 2. Fallback to DB (With Context for Tracing)
+	// 2. Fallback to DB
 	db := ctrl.DB
 	if tdb, exists := c.Get("tenantDBConn"); exists {
 		db = tdb.(*gorm.DB)
 	}
 	query := db.WithContext(ctx)
-if c.Query("eager") == "true" {
-{{#each relationships}}
-query = query.Preload("{{capitalize from.field}}")
-query = query.Preload("{{capitalize to.field}}")
-{{/each}}
+	if c.Query("eager") == "true" {
+		{{#each relationships}}
+		{{#if (eq from.entity ../name)}}
+		query = query.Preload("{{capitalize from.field}}")
+		{{else}}
+		query = query.Preload("{{capitalize to.field}}")
+		{{/if}}
+		{{/each}}
+	}
+
+	if err := query.First(&entity, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Resource not found"})
+		return
+	}
+
+	// 3. Update Cache
+	resilience.Execute(func() (interface{}, error) {
+		cache.Set(cacheKey, entity, ctrl.Config.GoDuck.Cache.Redis.TTL)
+		return nil, nil
+	})
+
+	c.JSON(http.StatusOK, entity)
 }
 
-if err := query.First(&entity, id).Error; err != nil {
-c.JSON(http.StatusNotFound, gin.H{"error": "Resource not found"})
-return
-}
+// Update handles full update of a {{capitalize name}}
+func (ctrl *{{capitalize name}}Controller) Update(c *gin.Context) {
+	id := c.Param("id")
+	tenant, _ := c.Get("tenantDB")
+	tenantStr := fmt.Sprintf("%v", tenant)
+	ctx := c.Request.Context()
 
-// 3. Update Cache (Resilient)
-resilience.Execute(func() (interface{}, error) {
-cache.Set(cacheKey, entity, ctrl.Config.GoDuck.Cache.Redis.TTL)
-return nil, nil
-})
-
-c.JSON(http.StatusOK, entity)
-}
-
-// Update (PUT) - Full Update
 	db := ctrl.DB
 	if tdb, exists := c.Get("tenantDBConn"); exists {
 		db = tdb.(*gorm.DB)
@@ -143,36 +160,40 @@ c.JSON(http.StatusOK, entity)
 
 	var entity models.{{capitalize name}}
 	if err := db.WithContext(ctx).First(&entity, id).Error; err != nil {
-c.JSON(http.StatusNotFound, gin.H{"error": "Resource not found"})
-return
-}
+		c.JSON(http.StatusNotFound, gin.H{"error": "Resource not found"})
+		return
+	}
 
-// Capture Previous State
-prev := entity
-
-if err := c.ShouldBindJSON(&entity); err != nil {
-c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-return
-}
+	prev := entity
+	if err := c.ShouldBindJSON(&entity); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	if err := db.WithContext(ctx).Save(&entity).Error; err != nil {
-c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-return
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Cache Invalidation
+	cache.Delete(fmt.Sprintf("%s:{{capitalize name}}:%s", tenantStr, id))
+
+	// MQTT Event
+	resilience.Execute(func() (interface{}, error) {
+		messaging.PublishEvent(ctrl.Config.GoDuck.Messaging.MQTT.TopicPrefix, "UPDATE", "{{capitalize name}}", entity, prev)
+		return nil, nil
+	})
+
+	c.JSON(http.StatusOK, entity)
 }
 
-// Cache Invalidation (Tenant Aware)
-cache.Delete(fmt.Sprintf("%s:{{capitalize name}}:%s", tenantStr, id))
+// Patch handles partial update of a {{capitalize name}}
+func (ctrl *{{capitalize name}}Controller) Patch(c *gin.Context) {
+	id := c.Param("id")
+	tenant, _ := c.Get("tenantDB")
+	tenantStr := fmt.Sprintf("%v", tenant)
+	ctx := c.Request.Context()
 
-// MQTT Event (Resilient)
-resilience.Execute(func() (interface{}, error) {
-messaging.PublishEvent(ctrl.Config.GoDuck.Messaging.MQTT.TopicPrefix, "UPDATE", "{{capitalize name}}", entity, prev)
-return nil, nil
-})
-
-c.JSON(http.StatusOK, entity)
-}
-
-// Patch (PATCH) - Partial Update
 	db := ctrl.DB
 	if tdb, exists := c.Get("tenantDBConn"); exists {
 		db = tdb.(*gorm.DB)
@@ -180,38 +201,43 @@ c.JSON(http.StatusOK, entity)
 
 	var entity models.{{capitalize name}}
 	if err := db.WithContext(ctx).First(&entity, id).Error; err != nil {
-c.JSON(http.StatusNotFound, gin.H{"error": "Resource not found"})
-return
+		c.JSON(http.StatusNotFound, gin.H{"error": "Resource not found"})
+		return
+	}
+	prev := entity
+
+	var updates map[string]interface{}
+	if err := c.ShouldBindJSON(&updates); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := db.WithContext(ctx).Model(&entity).Updates(updates).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Fetch updated
+	db.WithContext(ctx).First(&entity, id)
+
+	// Cache Invalidation
+	cache.Delete(fmt.Sprintf("%s:{{capitalize name}}:%s", tenantStr, id))
+
+	// MQTT Event
+	resilience.Execute(func() (interface{}, error) {
+		messaging.PublishEvent(ctrl.Config.GoDuck.Messaging.MQTT.TopicPrefix, "PATCH", "{{capitalize name}}", entity, prev)
+		return nil, nil
+	})
+
+	c.JSON(http.StatusOK, gin.H{"message": "Updated successfully", "data": entity})
 }
-prev := entity
 
-var updates map[string]interface{}
-if err := c.ShouldBindJSON(&updates); err != nil {
-c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-return
-}
+// BulkCreate handles creating multiple {{capitalize name}}s
+func (ctrl *{{capitalize name}}Controller) BulkCreate(c *gin.Context) {
+	tenant, _ := c.Get("tenantDB")
+	tenantStr := fmt.Sprintf("%v", tenant)
+	ctx := c.Request.Context()
 
-if err := db.WithContext(ctx).Model(&entity).Updates(updates).Error; err != nil {
-c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-return
-}
-
-// Fetch updated
-db.WithContext(ctx).First(&entity, id)
-
-// Cache Invalidation (Tenant Aware)
-cache.Delete(fmt.Sprintf("%s:{{capitalize name}}:%s", tenantStr, id))
-
-// MQTT Event (Resilient)
-resilience.Execute(func() (interface{}, error) {
-messaging.PublishEvent(ctrl.Config.GoDuck.Messaging.MQTT.TopicPrefix, "PATCH", "{{capitalize name}}", entity, prev)
-return nil, nil
-})
-
-c.JSON(http.StatusOK, gin.H{"message": "Updated successfully", "data": entity})
-}
-
-// BulkCreate handles creating multiple entities in one transaction
 	db := ctrl.DB
 	if tdb, exists := c.Get("tenantDBConn"); exists {
 		db = tdb.(*gorm.DB)
@@ -228,10 +254,8 @@ c.JSON(http.StatusOK, gin.H{"message": "Updated successfully", "data": entity})
 		return
 	}
 
-	// Dynamic Cache Invalidation (Tenant Aware)
 	cache.ClearPattern(tenantStr + ":{{capitalize name}}*")
 
-	// MQTT Event (Resilient)
 	resilience.Execute(func() (interface{}, error) {
 		messaging.PublishEvent(ctrl.Config.GoDuck.Messaging.MQTT.TopicPrefix, "BULK_CREATE", "{{capitalize name}}", entities, nil)
 		return nil, nil
@@ -240,7 +264,12 @@ c.JSON(http.StatusOK, gin.H{"message": "Updated successfully", "data": entity})
 	c.JSON(http.StatusCreated, entities)
 }
 
-// BulkUpdate handles updating multiple entities in one transaction
+// BulkUpdate handles updating multiple {{capitalize name}}s
+func (ctrl *{{capitalize name}}Controller) BulkUpdate(c *gin.Context) {
+	tenant, _ := c.Get("tenantDB")
+	tenantStr := fmt.Sprintf("%v", tenant)
+	ctx := c.Request.Context()
+
 	db := ctrl.DB
 	if tdb, exists := c.Get("tenantDBConn"); exists {
 		db = tdb.(*gorm.DB)
@@ -267,7 +296,6 @@ c.JSON(http.StatusOK, gin.H{"message": "Updated successfully", "data": entity})
 		return
 	}
 
-	// MQTT Event (Resilient)
 	resilience.Execute(func() (interface{}, error) {
 		messaging.PublishEvent(ctrl.Config.GoDuck.Messaging.MQTT.TopicPrefix, "BULK_UPDATE", "{{capitalize name}}", entities, nil)
 		return nil, nil
@@ -276,7 +304,12 @@ c.JSON(http.StatusOK, gin.H{"message": "Updated successfully", "data": entity})
 	c.JSON(http.StatusOK, entities)
 }
 
-// BulkPatch handles partial updates for multiple entities
+// BulkPatch handles partial updating multiple {{capitalize name}}s
+func (ctrl *{{capitalize name}}Controller) BulkPatch(c *gin.Context) {
+	tenant, _ := c.Get("tenantDB")
+	tenantStr := fmt.Sprintf("%v", tenant)
+	ctx := c.Request.Context()
+
 	db := ctrl.DB
 	if tdb, exists := c.Get("tenantDBConn"); exists {
 		db = tdb.(*gorm.DB)
@@ -309,7 +342,13 @@ c.JSON(http.StatusOK, gin.H{"message": "Updated successfully", "data": entity})
 	c.JSON(http.StatusOK, gin.H{"message": "Bulk patch completed successfully"})
 }
 
-// Delete
+// Delete handles deleting a {{capitalize name}} by ID
+func (ctrl *{{capitalize name}}Controller) Delete(c *gin.Context) {
+	id := c.Param("id")
+	tenant, _ := c.Get("tenantDB")
+	tenantStr := fmt.Sprintf("%v", tenant)
+	ctx := c.Request.Context()
+
 	db := ctrl.DB
 	if tdb, exists := c.Get("tenantDBConn"); exists {
 		db = tdb.(*gorm.DB)
@@ -317,23 +356,21 @@ c.JSON(http.StatusOK, gin.H{"message": "Updated successfully", "data": entity})
 
 	var entity models.{{capitalize name}}
 	if err := db.WithContext(ctx).First(&entity, id).Error; err != nil {
-c.JSON(http.StatusNotFound, gin.H{"error": "Resource not found"})
-return
-}
+		c.JSON(http.StatusNotFound, gin.H{"error": "Resource not found"})
+		return
+	}
 
 	if err := db.WithContext(ctx).Delete(&entity).Error; err != nil {
-c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-return
-}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
-// Cache Invalidation (Tenant Aware)
-cache.Delete(fmt.Sprintf("%s:{{capitalize name}}:%s", tenantStr, id))
+	cache.Delete(fmt.Sprintf("%s:{{capitalize name}}:%s", tenantStr, id))
 
-// MQTT Event (Resilient)
-resilience.Execute(func() (interface{}, error) {
-messaging.PublishEvent(ctrl.Config.GoDuck.Messaging.MQTT.TopicPrefix, "DELETE", "{{capitalize name}}", entity, nil)
-return nil, nil
-})
+	resilience.Execute(func() (interface{}, error) {
+		messaging.PublishEvent(ctrl.Config.GoDuck.Messaging.MQTT.TopicPrefix, "DELETE", "{{capitalize name}}", entity, nil)
+		return nil, nil
+	})
 
-c.JSON(http.StatusNoContent, nil)
+	c.JSON(http.StatusNoContent, nil)
 }

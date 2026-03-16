@@ -1,0 +1,31 @@
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-conf
+  labels:
+    app: go-duck
+data:
+  otel-collector-config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+          http:
+    processors:
+      batch:
+      resourcedetection:
+        detectors: [env, system]
+    exporters:
+      logging:
+        loglevel: debug
+      otlp:
+        endpoint: "jaeger-collector:4317"
+        tls:
+          insecure: true
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [batch, resourcedetection]
+          exporters: [logging, otlp]

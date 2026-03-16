@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>go-duck - GDL Reference</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+    <script>hljs.highlightAll();</script>
+    <style>
+        .gradient-text { background: linear-gradient(90deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-indigo-300 selection:text-indigo-900">
+    <!-- Navbar -->
+    <nav class="bg-slate-900/95 backdrop-blur-md shadow-lg fixed w-full z-30 top-0 h-16 flex items-center px-6 border-b border-slate-800">
+        <div class="flex items-center">
+            <img src="logo.png" alt="GO-DUCK Logo" class="h-10 w-auto mr-4 rounded-lg shadow-sm">
+            <div class="text-xl font-bold text-white tracking-tight">GO-DUCK <span class="text-indigo-300 text-xs font-semibold ml-2 inline-flex items-center px-2 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-500/30 uppercase tracking-wider hidden sm:inline-flex">Developer Guide</span></div>
+        </div>
+    </nav>
+
+    <div class="flex max-w-[90rem] mx-auto pt-16">
+        <!-- Sidebar -->
+        <aside class="w-72 fixed h-[calc(100vh-4rem)] overflow-y-auto bg-slate-50 border-r border-slate-200 p-6 hidden lg:block scroll-smooth">
+            <h3 class="font-bold text-slate-400 uppercase text-[10px] tracking-widest mb-4 flex items-center">
+                <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+                Table of Contents
+            </h3>
+            <ul class="space-y-1 text-sm font-medium text-slate-600">
+                <li><a href="index.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">Home & Quick Start</a></li>
+                
+                <li class="pt-5 pb-1 px-3"><span class="font-bold text-slate-900 uppercase text-[10px] tracking-widest">1. Core Concepts</span></li>
+                <li><a href="gdl.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 bg-white shadow-sm ring-1 ring-slate-200 text-indigo-700">GDL & Framework</a></li>
+                <li><a href="cli.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">CLI & Code Injection</a></li>
+                
+                <li class="pt-5 pb-1 px-3"><span class="font-bold text-slate-900 uppercase text-[10px] tracking-widest">2. API Endpoints</span></li>
+                <li><a href="rest.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">REST & Generic Search</a></li>
+                <li><a href="graphql.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">GraphQL Integration</a></li>
+                <li><a href="grpc.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">Secured gRPC (Kratos)</a></li>
+                
+                <li class="pt-5 pb-1 px-3"><span class="font-bold text-slate-900 uppercase text-[10px] tracking-widest">3. Real-Time & Audit</span></li>
+                <li><a href="realtime.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">WebSockets & MQTT</a></li>
+                <li><a href="audit.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">Audit & Metering</a></li>
+                
+                <li class="pt-5 pb-1 px-3"><span class="font-bold text-slate-900 uppercase text-[10px] tracking-widest">4. Infrastructure</span></li>
+                <li><a href="security.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">Security & Resilience</a></li>
+                <li><a href="observability.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">Observability</a></li>
+                
+                <li class="pt-5 pb-1 px-3"><span class="font-bold text-slate-900 uppercase text-[10px] tracking-widest">5. References</span></li>
+                <li><a href="integrations.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">Client Integrations</a></li>
+            </ul>
+        </aside>
+
+        <main class="flex-1 lg:ml-72 p-6 md:p-10 max-w-4xl xl:max-w-5xl">
+            <!-- White Content Card -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 md:p-12 mb-10 relative overflow-hidden">
+                <!-- Background Decoration -->
+                <div class="absolute top-0 right-0 w-64 h-64 bg-slate-50 rounded-bl-full -z-0"></div>
+                
+                <!-- Content injected here (raised z-index) -->
+                <div class="relative z-10">
+                    <div class="mb-10 text-center lg:text-left border-b border-slate-200 pb-8">
+    <div class="inline-flex items-center px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold tracking-wide uppercase mb-4">
+        Domain Driven Design
+    </div>
+    <h1 class="text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight mb-4">GDL (Go-Duck Language)</h1>
+    <p class="text-lg lg:text-xl text-slate-600 max-w-2xl leading-relaxed">The standard DSL for generating your massive suite of code from a simple text file.</p>
+</div>
+
+<section class="mb-12">
+    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+        <span class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center mr-3 text-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+        </span>
+        GDL Syntax & Structure
+    </h2>
+    <p class="mb-6 text-slate-600 leading-relaxed">GDL allows you to define your core business entities and the relationships between them. It looks and acts slightly similarly to JHipster's JDL.</p>
+
+    <div class="bg-[#1e1e1e] rounded-xl overflow-hidden shadow-lg mb-4">
+        <div class="bg-[#2d2d2d] px-4 py-2 border-b border-[#404040] flex items-center justify-between">
+            <div class="flex items-center">
+                <div class="flex space-x-1.5 mr-4">
+                    <div class="w-3 h-3 rounded-full bg-rose-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-amber-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+                </div>
+                <span class="text-xs text-slate-300 font-mono">schema.gdl</span>
+            </div>
+        </div>
+        <div class="p-5 overflow-x-auto text-sm">
+<pre><code class="language-plaintext">@Audited 
+entity Article {
+  title String required unique
+  content Text required
+  status ArticleStatus required
+  publishedDate LocalDate
+  views Integer
+  metadata JSONB
+}
+
+enum ArticleStatus {
+  DRAFT, PUBLISHED, ARCHIVED
+}
+
+entity Author {
+  name String required
+  biography Text
+  settings JSON
+}
+
+relationship OneToMany {
+  Author{article} to Article{author} required
+}</code></pre>
+        </div>
+    </div>
+</section>
+
+<section class="mb-12">
+    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+        <span class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center mr-3 text-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+        </span>
+        Supported Data Types
+    </h2>
+    <div class="overflow-x-auto rounded-xl border border-slate-200">
+        <table class="min-w-full text-left bg-white">
+            <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase text-xs tracking-wider">
+                    <th class="p-4 font-semibold">GDL Type</th>
+                    <th class="p-4 font-semibold">Go Struct Type</th>
+                    <th class="p-4 font-semibold">Postgres / SQL Type</th>
+                    <th class="p-4 font-semibold">GraphQL / Proto</th>
+                </tr>
+            </thead>
+            <tbody class="text-sm text-slate-700 divide-y divide-slate-100">
+                <tr class="hover:bg-slate-50 transition-colors"><td class="p-4 font-semibold font-mono text-indigo-600">String</td><td class="p-4"><code class="bg-slate-100 px-1 py-0.5 rounded text-xs text-slate-800">string</code></td><td class="p-4">VARCHAR(255)</td><td class="p-4">String / string</td></tr>
+                <tr class="hover:bg-slate-50 transition-colors"><td class="p-4 font-semibold font-mono text-indigo-600">String(N)</td><td class="p-4"><code class="bg-slate-100 px-1 py-0.5 rounded text-xs text-slate-800">string</code></td><td class="p-4">VARCHAR(N)</td><td class="p-4">String / string</td></tr>
+                <tr class="hover:bg-slate-50 transition-colors"><td class="p-4 font-semibold font-mono text-indigo-600">Text</td><td class="p-4"><code class="bg-slate-100 px-1 py-0.5 rounded text-xs text-slate-800">string</code></td><td class="p-4">TEXT</td><td class="p-4">String / string</td></tr>
+                <tr class="hover:bg-slate-50 transition-colors"><td class="p-4 font-semibold font-mono text-indigo-600">JSON</td><td class="p-4"><code class="bg-slate-100 px-1 py-0.5 rounded text-xs text-slate-800">datatypes.JSON</code></td><td class="p-4 text-emerald-600 font-semibold">JSON</td><td class="p-4">String / string</td></tr>
+                <tr class="hover:bg-slate-50 transition-colors"><td class="p-4 font-semibold font-mono text-indigo-600">JSONB</td><td class="p-4"><code class="bg-slate-100 px-1 py-0.5 rounded text-xs text-slate-800">datatypes.JSON</code></td><td class="p-4 text-emerald-600 font-semibold">JSONB</td><td class="p-4">String / string</td></tr>
+                <tr class="hover:bg-slate-50 transition-colors"><td class="p-4 font-semibold font-mono text-indigo-600">Integer</td><td class="p-4"><code class="bg-slate-100 px-1 py-0.5 rounded text-xs text-slate-800">int</code></td><td class="p-4">INT</td><td class="p-4">Int / int32</td></tr>
+                <tr class="hover:bg-slate-50 transition-colors"><td class="p-4 font-semibold font-mono text-indigo-600">Long</td><td class="p-4"><code class="bg-slate-100 px-1 py-0.5 rounded text-xs text-slate-800">int64</code></td><td class="p-4">BIGINT</td><td class="p-4">ID / int64</td></tr>
+                <tr class="hover:bg-slate-50 transition-colors"><td class="p-4 font-semibold font-mono text-indigo-600">Float</td><td class="p-4"><code class="bg-slate-100 px-1 py-0.5 rounded text-xs text-slate-800">float64</code></td><td class="p-4">DECIMAL</td><td class="p-4">Float / float32</td></tr>
+                <tr class="hover:bg-slate-50 transition-colors"><td class="p-4 font-semibold font-mono text-indigo-600">BigDecimal</td><td class="p-4"><code class="bg-slate-100 px-1 py-0.5 rounded text-xs text-slate-800">float64</code></td><td class="p-4">DECIMAL</td><td class="p-4">Float / double</td></tr>
+                <tr class="hover:bg-slate-50 transition-colors"><td class="p-4 font-semibold font-mono text-indigo-600">Boolean</td><td class="p-4"><code class="bg-slate-100 px-1 py-0.5 rounded text-xs text-slate-800">bool</code></td><td class="p-4">BOOLEAN</td><td class="p-4">Boolean / bool</td></tr>
+                <tr class="hover:bg-slate-50 transition-colors"><td class="p-4 font-semibold font-mono text-indigo-600">LocalDate</td><td class="p-4"><code class="bg-slate-100 px-1 py-0.5 rounded text-xs text-slate-800">time.Time</code></td><td class="p-4">DATE</td><td class="p-4">String / string</td></tr>
+                <tr class="hover:bg-slate-50 transition-colors"><td class="p-4 font-semibold font-mono text-indigo-600">Instant</td><td class="p-4"><code class="bg-slate-100 px-1 py-0.5 rounded text-xs text-slate-800">time.Time</code></td><td class="p-4">TIMESTAMP</td><td class="p-4">String / string</td></tr>
+                <tr class="hover:bg-slate-50 transition-colors"><td class="p-4 font-semibold font-mono text-indigo-600">Enum</td><td class="p-4"><code class="bg-slate-100 px-1 py-0.5 rounded text-xs text-slate-800">CustomType</code></td><td class="p-4">VARCHAR(50)</td><td class="p-4">String / string</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="mb-12">
+    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+        <span class="w-8 h-8 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center mr-3 text-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+        </span>
+        Enumerations
+    </h2>
+    <p class="mb-6 text-slate-600 leading-relaxed">GDL supports custom Enum types for fields that have a predefined set of allowed values. Enums are generated as Go types with constants and mapped to safe string columns in the database.</p>
+    
+    <div class="bg-[#1e1e1e] rounded-xl overflow-hidden shadow-lg">
+        <div class="p-5 overflow-x-auto text-sm text-slate-300">
+<pre><code class="language-plaintext">enum Language {
+  ENGLISH, FRENCH, GERMAN
+}
+
+entity Person {
+  name String required
+  nativeLanguage Language
+}</code></pre>
+        </div>
+    </div>
+</section>
+
+<section class="mb-12">
+    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+        <span class="w-8 h-8 rounded-lg bg-teal-100 text-teal-600 flex items-center justify-center mr-3 text-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+        </span>
+        Modifiers & Annotations
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+        <div class="p-5 rounded-2xl border border-slate-200 bg-white">
+            <h3 class="font-bold text-slate-900 mb-2 font-mono text-indigo-600">required</h3>
+            <p class="text-sm text-slate-600 leading-relaxed">Forces the field to be NOT NULL in the database, missing fields are blocked by the Gin validator natively.</p>
+        </div>
+        <div class="p-5 rounded-2xl border border-slate-200 bg-white">
+            <h3 class="font-bold text-slate-900 mb-2 font-mono text-indigo-600">unique</h3>
+            <p class="text-sm text-slate-600 leading-relaxed">Adds a standard UNIQUE constraint indexing configuration at the database level.</p>
+        </div>
+    </div>
+    <div class="p-6 rounded-2xl border border-rose-200 bg-rose-50/50">
+        <h3 class="font-bold text-rose-900 mb-2 font-mono drop-shadow-sm">@Audited</h3>
+        <p class="text-sm text-rose-800 leading-relaxed">An entity annotation that completely re-wires the structural behavior of the model. Standard <code class="bg-rose-100 px-1 py-0.5 rounded text-rose-900">created_at</code> triggers are bypassed and 5 highly-detailed audit columns are injected: <code>created_by, created_date, last_modified_by, last_modified_date, last_modified_user_id</code>. All changes are captured implicitly by the JWT middleware.</p>
+    </div>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+        <span class="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center mr-3 text-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+        </span>
+        Incremental Migration Engine
+    </h2>
+    <p class="mb-4 text-slate-600 leading-relaxed">Running <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-800 font-mono text-sm">go-duck import-gdl app.gdl</code> compares your GDL file against the physical <code>.go-duck/</code> snapshot state securely stored in the repo.</p>
+    <p class="mb-6 text-slate-600 leading-relaxed">It detects exactly what changed (such as removing a field, changing field types, adding new nested JSON) and generates precise atomic standard Liquibase XML <code>migrations/liquibase/changelogs/</code> scripts to evolve the live database safely without destroying data.</p>
+    
+    <div class="bg-blue-50/80 border border-blue-200 p-5 rounded-xl flex items-start shadow-sm">
+        <svg class="w-6 h-6 text-blue-500 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <div>
+            <h4 class="font-semibold text-blue-900 mb-1">Golden Rule</h4>
+            <p class="text-blue-800 text-sm leading-relaxed mb-2">Avoid editing Liquibase XML manually unless correcting an anomaly. Let the GDL manage your migrations.</p>
+        </div>
+    </div>
+</section>
+
+<section class="mb-12">
+    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+        <span class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center mr-3 text-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+        </span>
+        Managing Relationships
+    </h2>
+    <p class="mb-6 text-slate-600 leading-relaxed">Relationships in GDL define how entities connect at the database level (foreign keys) and how they are represented in Go structs and GraphQL schemas. Just like JHipster, we support four primary types.</p>
+
+    <!-- One-to-Many -->
+    <div class="mb-8">
+        <h3 class="text-xl font-semibold text-slate-800 mb-4 flex items-center">
+            One-to-Many
+            <span class="ml-3 px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider">Most Common</span>
+        </h3>
+        <p class="text-slate-600 mb-4 text-sm bg-slate-50 p-3 border-l-4 border-blue-400 rounded-r-lg">Example: An <code class="font-bold">Author</code> has many <code class="font-bold">Articles</code>.</p>
+        <div class="bg-[#1e1e1e] rounded-xl overflow-hidden shadow-lg">
+            <div class="p-4 overflow-x-auto text-sm">
+<pre><code class="language-plaintext">relationship OneToMany {
+  Author{article} to Article{author}
+}</code></pre>
+            </div>
+        </div>
+        <p class="mt-4 text-sm text-slate-500 italic">This generates a <code>author_id</code> foreign key in the <code>article</code> table and a slice of Articles in the Author struct.</p>
+    </div>
+
+    <!-- Many-to-One -->
+    <div class="mb-8">
+        <h3 class="text-xl font-semibold text-slate-800 mb-4">Many-to-One</h3>
+        <p class="text-slate-600 mb-4 text-sm bg-slate-50 p-3 border-l-4 border-slate-300 rounded-r-lg">Essentially the inverse of One-to-Many, used to specify the owner side explicitly.</p>
+        <div class="bg-[#1e1e1e] rounded-xl overflow-hidden shadow-lg">
+            <div class="p-4 overflow-x-auto text-sm">
+<pre><code class="language-plaintext">relationship ManyToOne {
+  Article{author} to Author
+}</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- One-to-One -->
+    <div class="mb-8">
+        <h3 class="text-xl font-semibold text-slate-800 mb-4">One-to-One</h3>
+        <p class="text-slate-600 mb-4 text-sm bg-slate-50 p-3 border-l-4 border-indigo-400 rounded-r-lg">Example: A <code class="font-bold">User</code> has exactly one <code class="font-bold">Profile</code>.</p>
+        <div class="bg-[#1e1e1e] rounded-xl overflow-hidden shadow-lg">
+            <div class="p-4 overflow-x-auto text-sm">
+<pre><code class="language-plaintext">relationship OneToOne {
+  User{profile} to Profile{user}
+}</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Many-to-Many -->
+    <div class="mb-8">
+        <h3 class="text-xl font-semibold text-slate-800 mb-4">Many-to-Many</h3>
+        <p class="text-slate-600 mb-4 text-sm bg-slate-50 p-3 border-l-4 border-purple-400 rounded-r-lg">Example: <code class="font-bold">Students</code> enrolled in many <code class="font-bold">Courses</code>.</p>
+        <div class="bg-[#1e1e1e] rounded-xl overflow-hidden shadow-lg">
+            <div class="p-4 overflow-x-auto text-sm">
+<pre><code class="language-plaintext">relationship ManyToMany {
+  Student{course} to Course{student}
+}</code></pre>
+            </div>
+        </div>
+        <p class="mt-4 text-sm text-slate-500 italic">This triggers the automatic generation of a join table (e.g., <code>student_course</code>) in Liquibase.</p>
+    </div>
+</section>
+
+                </div>
+            </div>
+            
+            <footer class="mt-8 text-center text-slate-400 text-sm mb-8 flex justify-center items-center space-x-2">
+                <span>Generated with</span>
+                <span class="text-lg">🦆</span>
+                <span>by <strong>GO-DUCK CLI</strong></span>
+            </footer>
+        </main>
+    </div>
+    <!-- Lightbox Overlay -->
+    <div id="lightbox" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4 md:p-10 cursor-zoom-out" onclick="this.classList.add('hidden')">
+        <div class="relative max-w-5xl w-full h-full flex items-center justify-center">
+            <img id="lightbox-img" src="" alt="Enlarged View" class="max-w-full max-h-full object-contain rounded-xl shadow-2xl transition-all duration-300">
+            <button class="absolute top-0 right-0 m-4 text-white hover:text-indigo-300 transition-colors">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function openLightbox(src) {
+            const lb = document.getElementById('lightbox');
+            const img = document.getElementById('lightbox-img');
+            img.src = src;
+            lb.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

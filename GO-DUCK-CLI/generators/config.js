@@ -107,6 +107,7 @@ type Config struct {
 			Username        string        \`mapstructure:"username"\`
 			Password        string        \`mapstructure:"password"\`
 			Database        string        \`mapstructure:"database"\`
+			SSLMode         string        \`mapstructure:"ssl-mode"\`
 			MaxOpenConns    int           \`mapstructure:"max-open-conns"\`
 			MaxIdleConns    int           \`mapstructure:"max-idle-conns"\`
 			ConnMaxLifetime time.Duration \`mapstructure:"conn-max-lifetime"\`
@@ -163,8 +164,12 @@ func LoadConfig() (*Config, error) {
 
 func (c *Config) GetDSN() string {
 	ds := c.GoDuck.Datasource
-	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable",
-		ds.Host, ds.Username, ds.Password, ds.Database, ds.Port)
+	sslMode := "disable"
+	if ds.SSLMode != "" {
+		sslMode = ds.SSLMode
+	}
+	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s",
+		ds.Host, ds.Username, ds.Password, ds.Database, ds.Port, sslMode)
 }
 `;
 

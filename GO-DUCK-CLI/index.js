@@ -91,11 +91,15 @@ func AuditMiddleware(db *gorm.DB) gin.HandlerFunc {
 		if method == http.MethodPost { action = "CREATE" }
 		if method == http.MethodDelete { action = "DELETE" }
 
-		// Mock user and IP
-		userEmail := c.GetHeader("User-Email")
-		if userEmail == "" { userEmail = "anonymous" }
+		// Extract Identity from context (set by JWTMiddleware)
+		userEmail, _ := c.Get("UserEmail")
+		emailStr := "anonymous"
+		if email, ok := userEmail.(string); ok { emailStr = email }
 		
-		keycloakId := c.GetHeader("X-Keycloak-Id")
+		keycloakId, _ := c.Get("KeycloakID")
+		kidStr := ""
+		if kid, ok := keycloakId.(string); ok { kidStr = kid }
+		
 		clientIP := c.ClientIP()
 
 		// Call next handlers
@@ -106,8 +110,8 @@ func AuditMiddleware(db *gorm.DB) gin.HandlerFunc {
 		auditEntry := models.AuditLog{
 			EntityName: path,
 			Action:     action,
-			ModifiedBy: userEmail,
-			KeycloakID: keycloakId,
+			ModifiedBy: emailStr,
+			KeycloakID: kidStr,
 			ModifiedAt: time.Now(),
 			ClientIP:   clientIP,
 		}
@@ -447,73 +451,74 @@ const generateYAMLConfigs = async (config, outputDir) => {
     const extendedConfig = {
         ...cleanConfig,
         server: {
-            port: 8080,
-            'read-timeout': '30s',
-            'write-timeout': '30s',
+            port: cleanConfig.server?.port || 8080,
+            'read-timeout': cleanConfig.server?.['read-timeout'] || '30s',
+            'write-timeout': cleanConfig.server?.['write-timeout'] || '30s',
             grpc: {
-                addr: ':9000',
-                network: 'tcp',
-                timeout: '1s'
+                addr: cleanConfig.server?.grpc?.addr || ':9000',
+                network: cleanConfig.server?.grpc?.network || 'tcp',
+                timeout: cleanConfig.server?.grpc?.timeout || '1s'
             },
             cors: {
-                'allow-origins': ['*'],
-                'allow-methods': ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-                'allow-headers': ['Origin', 'Content-Type', 'Accept', 'Authorization']
+                'allow-origins': cleanConfig.server?.cors?.['allow-origins'] || ['*'],
+                'allow-methods': cleanConfig.server?.cors?.['allow-methods'] || ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+                'allow-headers': cleanConfig.server?.cors?.['allow-headers'] || ['Origin', 'Content-Type', 'Accept', 'Authorization', 'X-Tenant-ID']
             }
         },
         datasource: {
             ...cleanConfig.datasource,
-            'max-open-conns': 25,
-            'max-idle-conns': 10,
-            'conn-max-lifetime': '5m'
+            'ssl-mode': cleanConfig.datasource?.['ssl-mode'] || 'disable',
+            'max-open-conns': cleanConfig.datasource?.['max-open-conns'] || 25,
+            'max-idle-conns': cleanConfig.datasource?.['max-idle-conns'] || 10,
+            'conn-max-lifetime': cleanConfig.datasource?.['conn-max-lifetime'] || '5m'
         },
         security: {
             ...cleanConfig.security,
             'rate-limit': {
-                rps: 100,
-                burst: 200
+                rps: cleanConfig.security?.['rate-limit']?.rps || 100,
+                burst: cleanConfig.security?.['rate-limit']?.burst || 200
             }
         },
         logging: {
             datadog: {
-                enabled: false,
-                'api-key': 'YOUR_DATADOG_API_KEY',
-                site: 'datadoghq.com',
-                service: cleanConfig.name || 'go-duck-service'
+                enabled: cleanConfig.logging?.datadog?.enabled || false,
+                'api-key': cleanConfig.logging?.datadog?.['api-key'] || 'YOUR_DATADOG_API_KEY',
+                site: cleanConfig.logging?.datadog?.site || 'datadoghq.com',
+                service: cleanConfig.logging?.datadog?.service || cleanConfig.name || 'go-duck-service'
             }
         },
         messaging: {
             mqtt: {
-                enabled: false,
-                broker: 'tcp://localhost:1883',
-                'client-id': (cleanConfig.name || 'go-duck') + '-dev',
-                username: 'dev_user',
-                password: 'dev_password',
-                'topic-prefix': 'go-duck/events'
+                enabled: cleanConfig.messaging?.mqtt?.enabled || false,
+                broker: cleanConfig.messaging?.mqtt?.broker || 'tcp://localhost:1883',
+                'client-id': cleanConfig.messaging?.mqtt?.['client-id'] || (cleanConfig.name || 'go-duck') + '-dev',
+                username: cleanConfig.messaging?.mqtt?.username || 'dev_user',
+                password: cleanConfig.messaging?.mqtt?.password || 'dev_password',
+                'topic-prefix': cleanConfig.messaging?.mqtt?.['topic-prefix'] || 'go-duck/events'
             }
         },
         cache: {
             redis: {
-                enabled: false,
-                host: 'localhost:6379',
-                password: '',
-                db: 0,
-                ttl: '10m'
+                enabled: cleanConfig.cache?.redis?.enabled || false,
+                host: cleanConfig.cache?.redis?.host || 'localhost:6379',
+                password: cleanConfig.cache?.redis?.password || '',
+                db: cleanConfig.cache?.redis?.db || 0,
+                ttl: cleanConfig.cache?.redis?.ttl || '10m'
             }
         },
         resilience: {
             'circuit-breaker': {
-                enabled: true,
-                'failure-threshold': 5,
-                'success-threshold': 2,
-                timeout: '60s'
+                enabled: cleanConfig.resilience?.['circuit-breaker']?.enabled ?? true,
+                'failure-threshold': cleanConfig.resilience?.['circuit-breaker']?.['failure-threshold'] || 5,
+                'success-threshold': cleanConfig.resilience?.['circuit-breaker']?.['success-threshold'] || 2,
+                timeout: cleanConfig.resilience?.['circuit-breaker']?.timeout || '60s'
             }
         },
         telemetry: {
             otel: {
-                enabled: false,
-                endpoint: 'localhost:4317',
-                'sampler-ratio': 1.0
+                enabled: cleanConfig.telemetry?.otel?.enabled || false,
+                endpoint: cleanConfig.telemetry?.otel?.endpoint || 'localhost:4317',
+                'sampler-ratio': cleanConfig.telemetry?.otel?.['sampler-ratio'] || 1.0
             }
         }
     };
@@ -534,54 +539,53 @@ const generateYAMLConfigs = async (config, outputDir) => {
                 ...extendedConfig.server,
                 cors: {
                     ...extendedConfig.server.cors,
-                    'allow-origins': ['https://your-domain.com']
+                    'allow-origins': cleanConfig.server?.cors?.['allow-origins'] || ['https://your-domain.com']
                 }
             },
             logging: {
                 ...extendedConfig.logging,
                 datadog: {
                     ...extendedConfig.logging.datadog,
-                    enabled: true
+                    enabled: cleanConfig.logging?.datadog?.enabled ?? true
                 }
             },
             messaging: {
                 mqtt: {
-                    enabled: true,
-                    broker: 'tcp://mqtt.production.svc:1883',
-                    'client-id': cleanConfig.name + '-prod',
-                    username: 'prod_user',
-                    password: 'prod_password',
-                    'topic-prefix': 'go-duck/events'
+                    ...extendedConfig.messaging.mqtt,
+                    enabled: cleanConfig.messaging?.mqtt?.enabled ?? true,
+                    broker: cleanConfig.messaging?.mqtt?.broker || 'tcp://mqtt.production.svc:1883',
+                    'client-id': cleanConfig.messaging?.mqtt?.['client-id'] || cleanConfig.name + '-prod'
                 }
             },
             cache: {
                 redis: {
-                    enabled: true,
-                    host: 'redis.production.svc:6379',
-                    password: 'prod_redis_password',
-                    db: 0,
-                    ttl: '1h'
+                    ...extendedConfig.cache.redis,
+                    enabled: cleanConfig.cache?.redis?.enabled ?? true,
+                    host: cleanConfig.cache?.redis?.host || 'redis.production.svc:6379',
+                    ttl: cleanConfig.cache?.redis?.ttl || '1h'
                 }
             },
             resilience: {
                 'circuit-breaker': {
-                    enabled: true,
-                    'failure-threshold': 3,
-                    'success-threshold': 5,
-                    timeout: '30s'
+                    ...extendedConfig.resilience['circuit-breaker'],
+                    enabled: cleanConfig.resilience?.['circuit-breaker']?.enabled ?? true,
+                    'failure-threshold': cleanConfig.resilience?.['circuit-breaker']?.['failure-threshold'] || 3,
+                    'success-threshold': cleanConfig.resilience?.['circuit-breaker']?.['success-threshold'] || 5
                 }
             },
             telemetry: {
                 otel: {
-                    enabled: true,
-                    endpoint: 'otel-collector.monitoring.svc:4317',
-                    'sampler-ratio': 0.1
+                    ...extendedConfig.telemetry.otel,
+                    enabled: cleanConfig.telemetry?.otel?.enabled ?? true,
+                    endpoint: cleanConfig.telemetry?.otel?.endpoint || 'otel-collector.monitoring.svc:4317',
+                    'sampler-ratio': cleanConfig.telemetry?.otel?.['sampler-ratio'] || 0.1
                 }
             },
             datasource: {
                 ...extendedConfig.datasource,
-                'max-open-conns': 100,
-                'max-idle-conns': 50
+                host: cleanConfig.datasource?.host || 'db.production.svc',
+                'max-open-conns': cleanConfig.datasource?.['max-open-conns'] || 100,
+                'max-idle-conns': cleanConfig.datasource?.['max-idle-conns'] || 50
             }
         },
         environment: { active_profile: 'prod' }

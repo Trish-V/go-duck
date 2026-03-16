@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    
+    <changeSet id="car-create-20260316113506" author="go-duck">
+        <preConditions onFail="MARK_RAN"><not><tableExists tableName="car"/></not></preConditions>
+        <createTable tableName="car">
+            
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="model" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="year" type="INT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="price" type="DECIMAL">
+                <constraints nullable="true"/>
+            </column>
+            <column name="color" type="VARCHAR(50)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="features" type="JSONB">
+                <constraints nullable="true"/>
+            </column>
+            <column name="created_by" type="VARCHAR(255)"/>
+            <column name="created_date" type="TIMESTAMP"/>
+            <column name="last_modified_by" type="VARCHAR(255)"/>
+            <column name="last_modified_date" type="TIMESTAMP"/>
+            <column name="last_modified_user_id" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="person-create-20260316113506" author="go-duck">
+        <preConditions onFail="MARK_RAN"><not><tableExists tableName="person"/></not></preConditions>
+        <createTable tableName="person">
+            
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="firstname" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lastname" type="VARCHAR(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="true" unique="true"/>
+            </column>
+            <column name="age" type="INT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="preferences" type="JSON">
+                <constraints nullable="true"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="rel-person-car-20260316113506" author="go-duck">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="car" columnName="owner_id"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="car">
+            <column name="owner_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_car_owner" referencedTableName="person" referencedColumnNames="id"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="idx-idx_car_owner_id-20260316113506" author="go-duck">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists indexName="idx_car_owner_id"/></not>
+        </preConditions>
+        <createIndex indexName="idx_car_owner_id" tableName="car">
+            <column name="owner_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

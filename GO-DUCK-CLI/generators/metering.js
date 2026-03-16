@@ -42,11 +42,12 @@ import (
 
 func MeteringMiddleware(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID := c.GetHeader("X-Keycloak-Id")
-		if userID == "" {
+		keycloakId, exists := c.Get("KeycloakID")
+		if !exists {
 			c.Next()
 			return
 		}
+		userID := keycloakId.(string)
 
 		path := c.Request.URL.Path
 		var usage models.APIUsage

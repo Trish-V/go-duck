@@ -1,0 +1,80 @@
+type Car {
+id: ID!
+name: String!
+model: String!
+year: Int
+price: Float
+color: String
+features: String
+createdBy: String
+createdDate: String
+lastModifiedBy: String
+lastModifiedDate: String
+lastModifiedUserId: String
+owner: Person
+createdAt: String
+updatedAt: String
+}
+
+input CreateCarInput {
+name: String!
+model: String!
+year: Int
+price: Float
+color: String
+features: String
+ownerId: ID!
+}
+
+input UpdateCarInput {
+name: String
+model: String
+year: Int
+price: Float
+color: String
+features: String
+}
+type Person {
+id: ID!
+firstName: String!
+lastName: String
+email: String
+age: Int
+preferences: String
+car: [Car]
+createdAt: String
+updatedAt: String
+}
+
+input CreatePersonInput {
+firstName: String!
+lastName: String
+email: String
+age: Int
+preferences: String
+}
+
+input UpdatePersonInput {
+firstName: String
+lastName: String
+email: String
+age: Int
+preferences: String
+}
+
+
+type Query {
+getCar(id: ID!): Car
+listCars(page: Int, size: Int): [Car]
+getPerson(id: ID!): Person
+listPersons(page: Int, size: Int): [Person]
+}
+
+type Mutation {
+createCar(input: CreateCarInput!): Car
+updateCar(id: ID!, input: UpdateCarInput!): Car
+deleteCar(id: ID!): Boolean
+createPerson(input: CreatePersonInput!): Person
+updatePerson(id: ID!, input: UpdatePersonInput!): Person
+deletePerson(id: ID!): Boolean
+}

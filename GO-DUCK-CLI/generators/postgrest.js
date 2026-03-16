@@ -26,7 +26,11 @@ type SearchController struct {
 // Syntax: /api/search/:table?age=gt.20&order=id.desc&limit=10&offset=0
 func (sc *SearchController) GenericSearch(c *gin.Context) {
 	tableName := c.Param("table")
-	query := sc.DB.Table(tableName)
+	db := sc.DB
+	if tdb, exists := c.Get("tenantDBConn"); exists {
+		db = tdb.(*gorm.DB)
+	}
+	query := db.Table(tableName)
 
 	// Apply Filters
 	params := c.Request.URL.Query()
