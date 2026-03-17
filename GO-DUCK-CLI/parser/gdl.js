@@ -110,7 +110,30 @@ export const parseGDL = async (filePath) => {
         }
     }
 
-    return { entities, relationships, enums };
+    // Parse open entities
+    const openEntities = [];
+    const openRegex = /open\s+(.*)/g;
+    while ((match = openRegex.exec(content)) !== null) {
+        const val = match[1].trim();
+        // Split by comma but ignore commas inside parentheses
+        const items = val.split(/,(?![^\(]*\))/).map(v => v.trim()).filter(v => v.length > 0);
+        
+        for (const item of items) {
+             const itemMatch = item.match(/^([\w\*]+)(?:\s*\((.*?)\))?$/);
+             if (itemMatch) {
+                 const name = itemMatch[1];
+                 const actionStr = itemMatch[2];
+                 let actions = ['read', 'create', 'update', 'delete'];
+                 if (actionStr) {
+                     actions = actionStr.split(/[\s,]+/).map(a => a.trim().toLowerCase()).filter(a => a.length > 0);
+                 }
+                 
+                 openEntities.push({ name, actions });
+             }
+        }
+    }
+
+    return { entities, relationships, enums, openEntities };
 };
 
 /**

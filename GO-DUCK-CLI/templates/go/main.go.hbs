@@ -140,6 +140,37 @@ mgmt := r.Group("/management")
 mgmt.POST("/db/create", management.CreateDatabaseAndMigrate(masterDB))
 }
 
+// 8.5 Open Application APIs (No Auth)
+openApi := r.Group("/open/api")
+if appConfig.GoDuck.Multitenancy.Enabled {
+    openApi.Use(middleware.PublicTenantMiddleware(masterDB, appConfig))
+}
+{
+    {{#each entities}}
+    // {{name}} Public Routes
+    {{toLowerCase name}}OpenCtrl := controllers.{{capitalize name}}Controller{DB: masterDB, Config: appConfig}
+    {{#if (isOpen name ../openEntities 'create')}}
+    openApi.POST("/{{toLowerCase name}}s", {{toLowerCase name}}OpenCtrl.Create)
+    openApi.POST("/{{toLowerCase name}}s/bulk", {{toLowerCase name}}OpenCtrl.BulkCreate)
+    {{/if}}
+    {{#if (isOpen name ../openEntities 'read')}}
+    openApi.GET("/{{toLowerCase name}}s", {{toLowerCase name}}OpenCtrl.GetAll)
+    openApi.GET("/{{toLowerCase name}}s/:id", {{toLowerCase name}}OpenCtrl.GetByID)
+    {{/if}}
+    {{#if (isOpen name ../openEntities 'update')}}
+    openApi.PUT("/{{toLowerCase name}}s/:id", {{toLowerCase name}}OpenCtrl.Update)
+    openApi.PUT("/{{toLowerCase name}}s/bulk", {{toLowerCase name}}OpenCtrl.BulkUpdate)
+    {{/if}}
+    {{#if (isOpen name ../openEntities 'delete')}}
+    openApi.DELETE("/{{toLowerCase name}}s/:id", {{toLowerCase name}}OpenCtrl.Delete)
+    {{/if}}
+    {{#if (isOpen name ../openEntities 'update')}}
+    openApi.PATCH("/{{toLowerCase name}}s/:id", {{toLowerCase name}}OpenCtrl.Patch)
+    openApi.PATCH("/{{toLowerCase name}}s/bulk", {{toLowerCase name}}OpenCtrl.BulkPatch)
+    {{/if}}
+    {{/each}}
+}
+
 // 9. Secured Application APIs
 api := r.Group("/api")
 api.Use(middleware.JWTMiddleware())

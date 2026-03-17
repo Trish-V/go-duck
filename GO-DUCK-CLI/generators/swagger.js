@@ -2,7 +2,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import chalk from 'chalk';
 
-export const generateSwaggerDocs = async (config, entities, outputDir) => {
+export const generateSwaggerDocs = async (config, entities, outputDir, openEntities = []) => {
     const docsDir = path.join(outputDir, 'docs');
     await fs.ensureDir(docsDir);
 
@@ -14,7 +14,7 @@ export const generateSwaggerDocs = async (config, entities, outputDir) => {
             description: `Generated documentation for ${config.name} microservice`
         },
         servers: [
-            { url: 'http://localhost:8080/api', description: 'Local Development Server' }
+            { url: 'http://localhost:8080', description: 'Local Development Server' }
         ],
         paths: {},
         components: {
@@ -28,7 +28,7 @@ export const generateSwaggerDocs = async (config, entities, outputDir) => {
                     type: 'apiKey',
                     in: 'header',
                     name: 'X-Tenant-ID',
-                    description: 'The unique identifier for the tenant dashboard context'
+                    description: 'The unique identifier for the tenant context'
                 }
             },
             schemas: {
@@ -40,6 +40,8 @@ export const generateSwaggerDocs = async (config, entities, outputDir) => {
                 }
             }
         },
+        // Global security applies to /api by default in our implementation, 
+        // but Swagger paths can override this.
         security: [
             { BearerAuth: [], TenantID: [] }
         ]
@@ -48,6 +50,25 @@ export const generateSwaggerDocs = async (config, entities, outputDir) => {
     const commonHeaders = [
         { name: 'X-Tenant-ID', in: 'header', required: true, schema: { type: 'string', default: 'default' }, description: 'Multi-tenancy context identifier' }
     ];
+
+    const isOpen = (entityName, action) => {
+        if (!openEntities || !Array.isArray(openEntities)) return false;
+        
+        // Check wildcard first
+        const wildcard = openEntities.find(e => e.name === '*');
+        if (wildcard) {
+            if (!action) return true;
+            if (wildcard.actions.includes(action.toLowerCase())) return true;
+        }
+
+        const entry = openEntities.find(e => e.name === entityName);
+        if (entry) {
+            if (!action) return true;
+            if (entry.actions.includes(action.toLowerCase())) return true;
+        }
+
+        return false;
+    };
 
     // 1. Add Entity Paths
     for (const entity of entities) {
@@ -68,22 +89,34 @@ export const generateSwaggerDocs = async (config, entities, outputDir) => {
             }
         };
 
-        // POST /entities
-        swagger.paths[`/${name}s`] = {
-            post: {
-                tags: [capitalized],
+        const addEntityOperations = (basePath, isPublic) => {
+            const security = isPublic ? [{ TenantID: [] }] : undefined; // undefined uses global security
+
+            // Unified helper for path registration based on permissions
+            const regPath = (path, method, op, action) => {
+                if (isPublic && !isOpen(capitalized, action)) return;
+                
+                if (!swagger.paths[path]) swagger.paths[path] = {};
+                swagger.paths[path][method] = {
+                    ...op,
+                    tags: [isPublic ? `${capitalized} (Public)` : capitalized],
+                    summary: `${op.summary} ${isPublic ? '(Public)' : ''}`,
+                    security: security
+                };
+            };
+
+            // CRUD Operations
+            regPath(`${basePath}/${name}s`, 'post', {
                 summary: `Create a new ${capitalized}`,
                 parameters: [...commonHeaders],
                 requestBody: {
                     required: true,
                     content: { 'application/json': { schema: { $ref: `#/components/schemas/${capitalized}` } } }
                 },
-                responses: {
-                    201: { description: 'Created', content: { 'application/json': { schema: { $ref: `#/components/schemas/${capitalized}` } } } }
-                }
-            },
-            get: {
-                tags: [capitalized],
+                responses: { 201: { description: 'Created', content: { 'application/json': { schema: { $ref: `#/components/schemas/${capitalized}` } } } } }
+            }, 'create');
+
+            regPath(`${basePath}/${name}s`, 'get', {
                 summary: `Get all ${capitalized}s`,
                 parameters: [
                     ...commonHeaders,
@@ -91,96 +124,64 @@ export const generateSwaggerDocs = async (config, entities, outputDir) => {
                     { name: 'size', in: 'query', schema: { type: 'integer' }, description: 'Records per page' },
                     { name: 'eager', in: 'query', schema: { type: 'boolean' }, description: 'If true, performs SQL Join to fetch relations' }
                 ],
-                responses: {
-                    200: { description: 'OK', content: { 'application/json': { schema: { type: 'array', items: { $ref: `#/components/schemas/${capitalized}` } } } } }
-                }
-            }
-        };
+                responses: { 200: { description: 'OK', content: { 'application/json': { schema: { type: 'array', items: { $ref: `#/components/schemas/${capitalized}` } } } } } }
+            }, 'read');
 
-        // GET/PUT/PATCH/DELETE /entities/:id
-        swagger.paths[`/${name}s/{id}`] = {
-            get: {
-                tags: [capitalized],
+            regPath(`${basePath}/${name}s/{id}`, 'get', {
                 summary: `Get ${capitalized} by ID`,
                 parameters: [
                     ...commonHeaders,
                     { name: 'id', in: 'path', required: true, schema: { type: 'integer' } },
                     { name: 'eager', in: 'query', schema: { type: 'boolean' } }
                 ],
-                responses: {
-                    200: { description: 'OK', content: { 'application/json': { schema: { $ref: `#/components/schemas/${capitalized}` } } } }
-                }
-            },
-            put: {
-                tags: [capitalized],
+                responses: { 200: { description: 'OK', content: { 'application/json': { schema: { $ref: `#/components/schemas/${capitalized}` } } } } }
+            }, 'read');
+
+            regPath(`${basePath}/${name}s/{id}`, 'put', {
                 summary: `Update ${capitalized}`,
                 parameters: [...commonHeaders, { name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
-                responses: {
-                    200: { description: 'Updated', content: { 'application/json': { schema: { $ref: `#/components/schemas/${capitalized}` } } } }
-                }
-            },
-            delete: {
-                tags: [capitalized],
+                responses: { 200: { description: 'Updated', content: { 'application/json': { schema: { $ref: `#/components/schemas/${capitalized}` } } } } }
+            }, 'update');
+
+            regPath(`${basePath}/${name}s/{id}`, 'patch', {
+                summary: `Patch ${capitalized}`,
+                parameters: [...commonHeaders, { name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
+                responses: { 200: { description: 'Patched' } }
+            }, 'update');
+
+            regPath(`${basePath}/${name}s/{id}`, 'delete', {
                 summary: `Delete ${capitalized}`,
                 parameters: [...commonHeaders, { name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
-                responses: {
-                    204: { description: 'No Content' }
-                }
-            }
-        };
+                responses: { 204: { description: 'No Content' } }
+            }, 'delete');
 
-        // BULK Operations /entities/bulk
-        swagger.paths[`/${name}s/bulk`] = {
-            post: {
-                tags: [capitalized],
+            // Bulk Operations
+            regPath(`${basePath}/${name}s/bulk`, 'post', {
                 summary: `Bulk Create ${capitalized}s`,
                 parameters: [...commonHeaders],
                 requestBody: {
                     required: true,
                     content: { 'application/json': { schema: { type: 'array', items: { $ref: `#/components/schemas/${capitalized}` } } } }
                 },
-                responses: {
-                    201: { description: 'Created', content: { 'application/json': { schema: { type: 'array', items: { $ref: `#/components/schemas/${capitalized}` } } } } }
-                }
-            },
-            put: {
-                tags: [capitalized],
+                responses: { 201: { description: 'Created' } }
+            }, 'create');
+
+            regPath(`${basePath}/${name}s/bulk`, 'put', {
                 summary: `Bulk Update ${capitalized}s`,
                 parameters: [...commonHeaders],
                 requestBody: {
                     required: true,
                     content: { 'application/json': { schema: { type: 'array', items: { $ref: `#/components/schemas/${capitalized}` } } } }
                 },
-                responses: {
-                    200: { description: 'Updated', content: { 'application/json': { schema: { type: 'array', items: { $ref: `#/components/schemas/${capitalized}` } } } } }
-                }
-            },
-            patch: {
-                tags: [capitalized],
-                summary: `Bulk Patch ${capitalized}s`,
-                parameters: [...commonHeaders],
-                requestBody: {
-                    required: true,
-                    content: { 
-                        'application/json': { 
-                            schema: { 
-                                type: 'array', 
-                                items: { 
-                                    type: 'object',
-                                    properties: {
-                                        id: { type: 'integer' },
-                                        changes: { type: 'object' }
-                                    }
-                                } 
-                            } 
-                        } 
-                    }
-                },
-                responses: {
-                    200: { description: 'Patched' }
-                }
-            }
+                responses: { 200: { description: 'Updated' } }
+            }, 'update');
         };
+
+        // 1a. Secured Paths
+        addEntityOperations('/api', false);
+
+        // 1b. Public Paths (if marked as open)
+        addEntityOperations('/open/api', true);
     }
 
     // 2. Add System Paths

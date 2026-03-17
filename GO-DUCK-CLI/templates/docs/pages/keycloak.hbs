@@ -1,0 +1,43 @@
+<h1 class="text-4xl font-extrabold text-gray-900 mb-4">Keycloak: Identity & Access Management</h1>
+<p class="text-lg text-gray-600 mb-8">Secure your microservices with industrial-strength OIDC/JWT authentication powered by Keycloak.</p>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Centralized Identity</h2>
+    <p class="mb-4 text-gray-700">Identity management is a first-class citizen in GO-DUCK. Every microservice is pre-configured to validate <strong>JSON Web Tokens (JWT)</strong> issued by Keycloak. This ensures that only authenticated users and services can access your data.</p>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">JWT Validation & Security</h2>
+    <p class="mb-4">The generated <code>middleware.JWTMiddleware()</code> handles several critical security tasks:</p>
+    <ul class="list-disc pl-8 mb-4 text-gray-700 space-y-2">
+        <li><strong>Digital Signature Verification</strong>: Validates the token against Keycloak's public keys (JWKS).</li>
+        <li><strong>Expiration Enforcement</strong>: Ensures tokens are still within their valid time window.</li>
+        <li><strong>Role Extraction</strong>: Seamlessly extracts user roles and injects them into the Gin context for downstream authorization.</li>
+        <li><strong>Context Safety</strong>: Populates <code>KeycloakID</code> in the context to prevent header spoofing in audit and metering modules.</li>
+    </ul>
+    
+    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-6 rounded-r">
+        <p class="text-yellow-900"><strong>Authorization:</strong> Beyond simple authentication, the middleware extracts the <code>realm_access.roles</code> from the token. You can use these roles to implement fine-grained RBAC inside your controllers.</p>
+    </div>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Configuration</h2>
+    <p class="mb-4 text-gray-700">Connecting your GO-DUCK app to Keycloak is a simple matter of YAML configuration:</p>
+    <pre><code class="language-yaml">go-duck:
+  security:
+    oidc:
+      issuer: "http://keycloak:8080/realms/{{appName}}"
+      client-id: "backend-service"
+      # Public key URL for token verification
+      jwks-url: "http://keycloak:8080/realms/{{appName}}/protocol/openid-connect/certs"</code></pre>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">External Resources</h2>
+    <ul class="space-y-2">
+        <li><a href="https://www.keycloak.org/documentation" target="_blank" class="text-indigo-600 hover:underline">Keycloak Official Documentation &rarr;</a></li>
+        <li><a href="https://openid.net/connect/" target="_blank" class="text-indigo-600 hover:underline">OpenID Connect (OIDC) Standard &rarr;</a></li>
+        <li><a href="https://jwt.io/" target="_blank" class="text-indigo-600 hover:underline">JWT.io: Debugging & Decoding Tokens &rarr;</a></li>
+    </ul>
+</section>

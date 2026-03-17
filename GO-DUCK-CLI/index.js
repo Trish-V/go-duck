@@ -208,6 +208,25 @@ Handlebars.registerHelper('gql_type', (type, options) => {
     return types[type] || 'String';
 });
 
+Handlebars.registerHelper('isOpen', (entityName, openEntities, action) => {
+    if (!openEntities || !Array.isArray(openEntities)) return false;
+    
+    // Check wildcard first
+    const wildcard = openEntities.find(e => e.name === '*');
+    if (wildcard) {
+        if (typeof action !== 'string') return true; 
+        if (wildcard.actions.includes(action.toLowerCase())) return true;
+    }
+
+    const entry = openEntities.find(e => e.name === entityName);
+    if (entry) {
+        if (typeof action !== 'string') return true;
+        if (entry.actions.includes(action.toLowerCase())) return true;
+    }
+
+    return false;
+});
+
 Handlebars.registerHelper('eq', (a, b) => a === b);
 
 program
@@ -255,8 +274,8 @@ const generateEntities = async (gdlFilePath, outputDir, config) => {
         return null;
     }
 
-    const { entities, relationships, enums } = await parseGDL(gdlFilePath);
-    console.log(chalk.green(`✅ Parsed ${entities.length} entities, ${relationships.length} relationships, and ${enums.length} enums`));
+    const { entities, relationships, enums, openEntities } = await parseGDL(gdlFilePath);
+    console.log(chalk.green(`✅ Parsed ${entities.length} entities, ${relationships.length} relationships, ${enums.length} enums, and detected ${openEntities.length} open rules`));
 
     const previousEntities = await getPreviousEntities(outputDir);
     const delta = {
@@ -334,7 +353,7 @@ const generateEntities = async (gdlFilePath, outputDir, config) => {
     await generateLiquibaseChangelogs(entities, relationships, outputDir, delta, enums);
     console.log(chalk.green('✅ Liquibase incremental migrations updated!'));
 
-    return { entities, relationships, enums };
+    return { entities, relationships, enums, openEntities };
 };
 
 program
@@ -361,7 +380,7 @@ program
         await generateTelemetryCode(config, absoluteOutputDir);
         await generateDeploymentArtifacts(config, absoluteOutputDir);
         await generateYAMLConfigs(config, absoluteOutputDir);
-        const { entities, relationships, enums } = await generateEntities(path.join(path.resolve(process.cwd(), gdlDir), 'app.gdl'), absoluteOutputDir, config);
+        const { entities, relationships, enums, openEntities } = await generateEntities(path.join(path.resolve(process.cwd(), gdlDir), 'app.gdl'), absoluteOutputDir, config);
         await generateKratosCode(entities, absoluteOutputDir, config.name, enums);
 
         await generateRepositoryCode(absoluteOutputDir);
@@ -376,11 +395,11 @@ program
         console.log(chalk.green('✅ PostgREST-like search layer created!'));
 
         // 8. Generate Swagger Docs
-        await generateSwaggerDocs(config, entities, absoluteOutputDir);
+        await generateSwaggerDocs(config, entities, absoluteOutputDir, openEntities);
         console.log(chalk.green('✅ Swagger API documentation generated!'));
 
         // 8.5 Generate Web Docs App
-        await generateDocumentation(config, entities, absoluteOutputDir, enums);
+        await generateDocumentation(config, entities, absoluteOutputDir, enums, openEntities);
         console.log(chalk.green('✅ Web Documentation App generated!'));
 
         // 9. Generate main.go
@@ -388,7 +407,7 @@ program
         if (await fs.pathExists(mainTemplatePath)) {
             const mainTemplateSource = await fs.readFile(mainTemplatePath, 'utf8');
             const mainTemplate = Handlebars.compile(mainTemplateSource);
-            await fs.writeFile(path.join(absoluteOutputDir, 'main.go'), mainTemplate({ app_name: config.name, entities }));
+            await fs.writeFile(path.join(absoluteOutputDir, 'main.go'), mainTemplate({ app_name: config.name, entities, openEntities }));
             console.log(chalk.green('✅ main.go entry point created!'));
         }
         console.log(chalk.bold.magenta('\n✨ Project created successfully!'));
@@ -410,7 +429,7 @@ program
         await generateResilienceCode(config, absoluteOutputDir);
         await generateTelemetryCode(config, absoluteOutputDir);
         await generateDeploymentArtifacts(config, absoluteOutputDir);
-        const { entities, relationships, enums } = await generateEntities(path.resolve(process.cwd(), file), absoluteOutputDir, config);
+        const { entities, relationships, enums, openEntities } = await generateEntities(path.resolve(process.cwd(), file), absoluteOutputDir, config);
         await generateKratosCode(entities, absoluteOutputDir, config.name, enums);
 
         await generateRepositoryCode(absoluteOutputDir);
@@ -426,16 +445,16 @@ program
         await generateWebSocketCode(config, entities, absoluteOutputDir);
 
         // Sync Swagger Docs
-        await generateSwaggerDocs(config, entities, absoluteOutputDir);
+        await generateSwaggerDocs(config, entities, absoluteOutputDir, openEntities);
 
         // Sync Web Docs App
-        await generateDocumentation(config, entities, absoluteOutputDir, enums);
+        await generateDocumentation(config, entities, absoluteOutputDir, enums, openEntities);
 
         // Regenerate main.go to include new routes if any (or just entities)
         const mainTemplatePath = path.resolve(path.dirname(import.meta.url.replace('file://', '')), 'templates/go/main.go.hbs');
         if (await fs.pathExists(mainTemplatePath)) {
             const mainTemplate = Handlebars.compile(await fs.readFile(mainTemplatePath, 'utf8'));
-            await fs.writeFile(path.join(absoluteOutputDir, 'main.go'), mainTemplate({ app_name: config.name, entities }));
+            await fs.writeFile(path.join(absoluteOutputDir, 'main.go'), mainTemplate({ app_name: config.name, entities, openEntities }));
             console.log(chalk.green('✅ Updated main.go to register new entity routes.'));
         }
         console.log(chalk.bold.magenta('\n✨ GDL Import Completed with Incremental Migrations! ✨'));

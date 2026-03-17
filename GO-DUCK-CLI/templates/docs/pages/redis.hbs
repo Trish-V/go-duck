@@ -1,0 +1,40 @@
+<h1 class="text-4xl font-extrabold text-gray-900 mb-4">Redis: Distributed Caching & Beyond</h1>
+<p class="text-lg text-gray-600 mb-8">Optimize your microservice performance with blitz-fast distributed caching using Redis.</p>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Cache Architecture</h2>
+    <p class="mb-4 text-gray-700">GO-DUCK implements a <strong>"Cache-Aside"</strong> strategy. This ensures that your application remains resilient: if Redis is down, the application automatically falls back to the database without crashing, thanks to our integrated <strong>Circuit Breakers</strong> (via Sony/Gobreaker).</p>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Multi-Tenant Isolation</h2>
+    <p class="mb-4">Standard caching in a multi-tenant app is dangerous. GO-DUCK solves this by **Tenant-Prefixing** every key automatically. Your cache keys look like <code>tenant_abc:User:123</code>, preventing data leaks across tenants.</p>
+    
+    <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-r">
+        <p class="text-red-900"><strong>Automatic Invalidation:</strong> Our repository layer handles cache invalidation. When you update or delete an entity via the REST/gRPC API, the corresponding Redis key is purged instantly to maintain data consistency.</p>
+    </div>
+
+    <h3 class="font-semibold mb-2 mt-6 text-xl">Direct Cache Usage</h3>
+    <pre><code class="language-go">import "{{appName}}/cache"
+
+// Store a value for 10 minutes
+cache.Set(ctx, "my-key", myStruct, 10 * time.Minute)
+
+// Retrieve and deserialize
+var target MyStruct
+err := cache.Get(ctx, "my-key", &target)</code></pre>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Resilience with Redis</h2>
+    <p class="mb-4 text-gray-700">All Redis calls are wrapped in a <strong>Circuit Breaker</strong>. If Redis experiences high latency or connection resets, the circuit opens, and your Go application skips the cache layers to protect the system from cascading failure.</p>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">External Resources</h2>
+    <ul class="space-y-2">
+        <li><a href="https://redis.io/documentation" target="_blank" class="text-indigo-600 hover:underline">Redis Official Documentation &rarr;</a></li>
+        <li><a href="https://github.com/go-redis/redis" target="_blank" class="text-indigo-600 hover:underline">Go-Redis Client Library &rarr;</a></li>
+        <li><a href="https://redis.com/blog/cache-aside-pattern-explained/" target="_blank" class="text-indigo-600 hover:underline">The Cache-Aside Pattern &rarr;</a></li>
+    </ul>
+</section>

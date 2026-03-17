@@ -140,6 +140,26 @@ mgmt := r.Group("/management")
 mgmt.POST("/db/create", management.CreateDatabaseAndMigrate(masterDB))
 }
 
+// 8.5 Open Application APIs (No Auth)
+openApi := r.Group("/open/api")
+if appConfig.GoDuck.Multitenancy.Enabled {
+    openApi.Use(middleware.PublicTenantMiddleware(masterDB, appConfig))
+}
+{
+    // Car Public Routes
+    carOpenCtrl := controllers.CarController{DB: masterDB, Config: appConfig}
+    openApi.GET("/cars", carOpenCtrl.GetAll)
+    openApi.GET("/cars/:id", carOpenCtrl.GetByID)
+    openApi.PUT("/cars/:id", carOpenCtrl.Update)
+    openApi.PUT("/cars/bulk", carOpenCtrl.BulkUpdate)
+    openApi.PATCH("/cars/:id", carOpenCtrl.Patch)
+    openApi.PATCH("/cars/bulk", carOpenCtrl.BulkPatch)
+    // Person Public Routes
+    personOpenCtrl := controllers.PersonController{DB: masterDB, Config: appConfig}
+    openApi.GET("/persons", personOpenCtrl.GetAll)
+    openApi.GET("/persons/:id", personOpenCtrl.GetByID)
+}
+
 // 9. Secured Application APIs
 api := r.Group("/api")
 api.Use(middleware.JWTMiddleware())

@@ -1,0 +1,39 @@
+<h1 class="text-4xl font-extrabold text-gray-900 mb-4">Mosquitto & Event Streaming</h1>
+<p class="text-lg text-gray-600 mb-8">Architect robust, event-driven microservices using Eclipse Mosquitto for high-performance MQTT messaging.</p>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Why MQTT?</h2>
+    <p class="mb-4 text-gray-700">MQTT is a lightweight, publish-subscribe network protocol that transports messages between devices. In the GO-DUCK ecosystem, we use <strong>Eclipse Mosquitto</strong> as our primary message broker for ultra-low latency event streaming and internal service notifications.</p>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">The Messaging Package</h2>
+    <p class="mb-4">GO-DUCK generates a clean <code>messaging</code> package that abstracts the MQTT client (Eclipse Paho). It handles reconnect strategies, certificate-based TLS (optional), and asynchronous publishing.</p>
+    
+    <div class="bg-purple-50 border-l-4 border-purple-500 p-4 mb-6 rounded-r">
+        <p class="text-purple-900"><strong>Audit Streaming:</strong> By default, if <code>@Audited</code> is used in GDL, GO-DUCK streams all entity change events to the MQTT topic <code>audit/logs/{{appName}}</code> for real-time consumption by external analytics or notification engines.</p>
+    </div>
+
+    <h3 class="font-semibold mb-2 mt-6 text-xl">Publishing an Event</h3>
+    <pre><code class="language-go">import "{{appName}}/messaging"
+
+// Publishing a custom JSON event
+event := map[string]interface{}{"event": "user_signed_up", "email": "dev@goduck.io"}
+messaging.Publish("events/users", event)</code></pre>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Local Development</h2>
+    <p class="mb-4">Your <code>docker-compose.yml</code> includes a pre-configured Mosquitto image. You can use any MQTT client (like MQTT.fx or mosquitto_pub/sub) to listen to your service events.</p>
+    <pre><code class="language-bash"># Subscribe to all audit events locally
+mosquitto_sub -h localhost -p 1883 -t "audit/logs/#" -v</code></pre>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">External Resources</h2>
+    <ul class="space-y-2">
+        <li><a href="https://mosquitto.org/documentation/" target="_blank" class="text-indigo-600 hover:underline">Mosquitto Official Documentation &rarr;</a></li>
+        <li><a href="https://mqtt.org/getting-started/" target="_blank" class="text-indigo-600 hover:underline">Getting Started with MQTT &rarr;</a></li>
+        <li><a href="https://github.com/eclipse/paho.mqtt.golang" target="_blank" class="text-indigo-600 hover:underline">Eclipse Paho Go Client &rarr;</a></li>
+    </ul>
+</section>

@@ -1,0 +1,46 @@
+<h1 class="text-4xl font-extrabold text-gray-900 mb-4">Datadog & Cloud Monitoring</h1>
+<p class="text-lg text-gray-600 mb-8">Harness the power of enterprise-grade observability with GO-DUCK's native Datadog integration for logs, metrics, and APM.</p>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Overview</h2>
+    <p class="mb-4 text-gray-700">GO-DUCK provides a specialized <code>logger</code> package that abstracts the complexity of streaming logs and metrics to Datadog. It supports environment-based configuration, ensuring you only pay for what you need in production while keeping local development logs clean.</p>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Log Streaming</h2>
+    <p class="mb-4">Our logger is designed to be Datadog-ready. When <code>datadog.enabled</code> is set to true, logs are formatted as JSON and sent directly to the Datadog API or via a local Datadog Agent.</p>
+    
+    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded-r">
+        <p class="text-blue-900"><strong>Pro-Tip:</strong> Use structured logging with <code>logger.Info("User logged in", zap.String("userID", user.ID))</code> to enable powerful faceted searches in the Datadog Log Explorer.</p>
+    </div>
+
+    <h3 class="font-semibold mb-2 mt-6 text-xl">Configuration</h3>
+    <pre><code class="language-yaml">go-duck:
+  logging:
+    level: "info"
+    datadog:
+      enabled: true
+      api-key: "${DD_API_KEY}"
+      site: "datadoghq.com"
+      service: "{{appName}}"
+      env: "production"</code></pre>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Custom Metrics (DogStatsD)</h2>
+    <p class="mb-4 text-gray-700">The generated code includes a pre-initialized Statsd client. You can push custom business metrics directly from your Go services:</p>
+    <ul class="list-disc pl-8 mb-4 text-gray-700 space-y-2">
+        <li><code>logger.Count("orders.placed", 1, tags, 1.0)</code> - Tracks volume.</li>
+        <li><code>logger.Histogram("payment.latency", duration, tags, 1.0)</code> - Tracks performance distribution.</li>
+        <li><code>logger.Gauge("active.users", count, tags, 1.0)</code> - Tracks point-in-time value.</li>
+    </ul>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">External Resources</h2>
+    <ul class="space-y-2">
+        <li><a href="https://docs.datadoghq.com/logs/" target="_blank" class="text-indigo-600 hover:underline">Datadog Logs Documentation &rarr;</a></li>
+        <li><a href="https://docs.datadoghq.com/metrics/dogstatsd/" target="_blank" class="text-indigo-600 hover:underline">DogStatsD Guide &rarr;</a></li>
+        <li><a href="https://docs.datadoghq.com/tracing/" target="_blank" class="text-indigo-600 hover:underline">Datadog APM & Distributed Tracing &rarr;</a></li>
+    </ul>
+</section>

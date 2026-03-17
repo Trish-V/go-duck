@@ -72,6 +72,30 @@ func (m *TenantDBManager) GetDB(dbName string) (*gorm.DB, error) {
 	return newDB, nil
 }
 
+func PublicTenantMiddleware(db *gorm.DB, cfg *config.Config) gin.HandlerFunc {
+	mgr := GetTenantManager(db, cfg)
+
+	return func(c *gin.Context) {
+		requestedTenant := c.GetHeader("X-Tenant-ID")
+		if requestedTenant == "" {
+			c.JSON(http.StatusForbidden, gin.H{"error": "X-Tenant-ID header required for public access"})
+			c.Abort()
+			return
+		}
+
+		tenantConn, err := mgr.GetDB(requestedTenant)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to resolve tenant database connection"})
+			c.Abort()
+			return
+		}
+
+		c.Set("tenantDB", requestedTenant)
+		c.Set("tenantDBConn", tenantConn)
+		c.Next()
+	}
+}
+
 func TenantMiddleware(db *gorm.DB, cfg *config.Config) gin.HandlerFunc {
 	mgr := GetTenantManager(db, cfg)
 

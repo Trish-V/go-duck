@@ -1,0 +1,40 @@
+<h1 class="text-4xl font-extrabold text-gray-900 mb-4">OpenTelemetry (OTel) & Jaeger</h1>
+<p class="text-lg text-gray-600 mb-8">Master the art of distributed tracing to debug complex inter-service communications in real-time.</p>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">What is OpenTelemetry?</h2>
+    <p class="mb-4 text-gray-700">OpenTelemetry is a collection of tools, APIs, and SDKs used to instrument, generate, collect, and export telemetry data (metrics, logs, and traces). GO-DUCK implements a <strong>"Full-Stack Tracing"</strong> strategy.</p>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">The Trace Pipeline</h2>
+    <p class="mb-4">Trace context is automatically propagated across your entire stack:</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-center">
+        <div class="p-4 bg-gray-50 border rounded font-semibold text-indigo-700">HTTP Router (Gin)</div>
+        <div class="p-4 bg-gray-50 border rounded font-semibold text-indigo-700">Service/Controller</div>
+        <div class="p-4 bg-gray-50 border rounded font-semibold text-indigo-700">Database (GORM)</div>
+    </div>
+    
+    <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6 rounded-r">
+        <p class="text-indigo-900">Each database query is automatically tagged with the <code>trace_id</code> of the incoming HTTP request. This allows you to identify exactly which REST call caused a slow SQL query.</p>
+    </div>
+
+    <h3 class="font-semibold mb-2 mt-6 text-xl">The OTel Collector</h3>
+    <p class="mb-4">GO-DUCK apps don't speak directly to tracing backends. Instead, they export via gRPC to an <strong>otel-collector</strong> sidecar. This collector acts as a buffer and can fan-out data to Jaeger, Datadog, or Honeycomb simultaneously.</p>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Visualizing with Jaeger</h2>
+    <p class="mb-4 text-gray-700">In local development, GO-DUCK spins up a Jaeger instance. It provides a web-based UI to search and visualize your traces.</p>
+    <pre><code class="language-bash"># Open Jaeger UI locally
+open http://localhost:16686</code></pre>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">External Resources</h2>
+    <ul class="space-y-2">
+        <li><a href="https://opentelemetry.io/docs/" target="_blank" class="text-indigo-600 hover:underline">OpenTelemetry Official Docs &rarr;</a></li>
+        <li><a href="https://www.jaegertracing.io/docs/" target="_blank" class="text-indigo-600 hover:underline">Jaeger Tracing Documentation &rarr;</a></li>
+        <li><a href="https://opentelemetry.io/docs/collector/" target="_blank" class="text-indigo-600 hover:underline">OTel Collector Guide &rarr;</a></li>
+    </ul>
+</section>

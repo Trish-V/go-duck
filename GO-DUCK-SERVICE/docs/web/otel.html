@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>go-duck - Client Integrations</title>
+    <title>go-duck - OpenTelemetry &amp; Jaeger</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css">
@@ -64,11 +64,11 @@
                 <li><a href="datadog.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">Datadog Monitoring</a></li>
                 <li><a href="mosquitto.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">Mosquitto MQTT</a></li>
                 <li><a href="redis.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">Redis Caching</a></li>
-                <li><a href="otel.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">OpenTelemetry & Jaeger</a></li>
+                <li><a href="otel.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 bg-white shadow-sm ring-1 ring-slate-200 text-indigo-700">OpenTelemetry & Jaeger</a></li>
                 <li><a href="keycloak.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">Keycloak Identity</a></li>
                 
                 <li class="pt-5 pb-1 px-3"><span class="font-bold text-slate-900 uppercase text-[10px] tracking-widest">6. References</span></li>
-                <li><a href="integrations.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 bg-white shadow-sm ring-1 ring-slate-200 text-indigo-700">Client Integrations</a></li>
+                <li><a href="integrations.html" class="flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-slate-200/50 hover:text-slate-900">Client Integrations</a></li>
             </ul>
         </aside>
 
@@ -80,89 +80,45 @@
                 
                 <!-- Content injected here (raised z-index) -->
                 <div class="relative z-10">
-                    <h1 class="text-4xl font-extrabold text-gray-900 mb-4">Frontend Integrations</h1>
-<p class="text-lg text-gray-600 mb-8">Ready-to-use snippets to wire up leading frontend frameworks to your ultra-fast API backend seamlessly.</p>
+                    <h1 class="text-4xl font-extrabold text-gray-900 mb-4">OpenTelemetry (OTel) & Jaeger</h1>
+<p class="text-lg text-gray-600 mb-8">Master the art of distributed tracing to debug complex inter-service communications in real-time.</p>
 
 <section class="mb-10">
-    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">1. Angular (TypeScript)</h2>
-    <p class="mb-4">Angular natively employs RxJS `HttpInterceptor` abstractions, making connecting to your GO-DUCK APIs simple.</p>
-    
-    <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6 rounded-r">
-        <p class="text-indigo-900"><strong>Note:</strong> We bypass typical manual HTTP Auth mapping by using Angular's pre-built <code>keycloak-angular</code> ecosystem package.</p>
-    </div>
-
-    <h3 class="font-semibold mb-2 mt-6">Creating a Service for Entity</h3>
-    <pre><code class="language-typescript">import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common';
-import { Observable } from 'rxjs';
-
-export interface Entity {
-  id: number;
-  name: any;
-  model: any;
-  year: any;
-  price: any;
-  color: any;
-  features: any;
-}
-
-@Injectable({ providedIn: 'root' })
-export class EntityService {
-  private apiUrl = 'http://localhost:8080/api/entitys';
-
-  constructor(private http: HttpClient) {}
-
-  // Standard REST Fetch with Pagination Parameters
-  getAll(page: number = 1, pageSize: number = 10): Observable&lt;any&gt; {
-    let params = new HttpParams()
-        .set('page', page.toString())
-        .set('pageSize', pageSize.toString());
-    return this.http.get&lt;any&gt;(this.apiUrl, { params });
-  }
-
-  // Example: Using the powerful Generic Search RPC Engine
-  search(queryField: string, operator: string, value: string): Observable&lt;any&gt; {
-    let params = new HttpParams().set(queryField, \`\${operator}.\${value}\`);
-    return this.http.get&lt;any&gt;('http://localhost:8080/api/rpc/entity', { params });
-  }
-}
-</code></pre>
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">What is OpenTelemetry?</h2>
+    <p class="mb-4 text-gray-700">OpenTelemetry is a collection of tools, APIs, and SDKs used to instrument, generate, collect, and export telemetry data (metrics, logs, and traces). GO-DUCK implements a <strong>"Full-Stack Tracing"</strong> strategy.</p>
 </section>
 
 <section class="mb-10">
-    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">2. Flutter (Dart)</h2>
-    <p class="mb-4">Connecting a cross-platform mobile app requires managing state efficiently. Here's a raw HTTP Dart integration model you can bind to Provider, Riverpod, or BLoC patterns seamlessly over your Keycloak environment.</p>
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">The Trace Pipeline</h2>
+    <p class="mb-4">Trace context is automatically propagated across your entire stack:</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-center">
+        <div class="p-4 bg-gray-50 border rounded font-semibold text-indigo-700">HTTP Router (Gin)</div>
+        <div class="p-4 bg-gray-50 border rounded font-semibold text-indigo-700">Service/Controller</div>
+        <div class="p-4 bg-gray-50 border rounded font-semibold text-indigo-700">Database (GORM)</div>
+    </div>
     
-    <pre><code class="language-dart">import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+    <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6 rounded-r">
+        <p class="text-indigo-900">Each database query is automatically tagged with the <code>trace_id</code> of the incoming HTTP request. This allows you to identify exactly which REST call caused a slow SQL query.</p>
+    </div>
 
-class ApiProvider {
-  static const String baseUrl = "http://localhost:8080/api/entitys";
-  final storage = const FlutterSecureStorage();
+    <h3 class="font-semibold mb-2 mt-6 text-xl">The OTel Collector</h3>
+    <p class="mb-4">GO-DUCK apps don't speak directly to tracing backends. Instead, they export via gRPC to an <strong>otel-collector</strong> sidecar. This collector acts as a buffer and can fan-out data to Jaeger, Datadog, or Honeycomb simultaneously.</p>
+</section>
 
-  // Retrieve Keycloak Bearer token from secure storage
-  Future&lt;Map&lt;String, String&gt;&gt; _getHeaders() async {
-    String? token = await storage.read(key: 'jwt_token');
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
-      'X-Tenant-ID': 'default', // If using Multi-Tenancy module
-    };
-  }
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Visualizing with Jaeger</h2>
+    <p class="mb-4 text-gray-700">In local development, GO-DUCK spins up a Jaeger instance. It provides a web-based UI to search and visualize your traces.</p>
+    <pre><code class="language-bash"># Open Jaeger UI locally
+open http://localhost:16686</code></pre>
+</section>
 
-  // Fetch API collection
-  Future&lt;List&lt;dynamic&gt;&gt; fetchEntitys() async {
-    final response = await http.get(Uri.parse(baseUrl), headers: await _getHeaders());
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return data['results']; 
-    } else {
-      throw Exception('Failed to load data. Res code: \${response.statusCode}');
-    }
-  }
-}
-</code></pre>
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">External Resources</h2>
+    <ul class="space-y-2">
+        <li><a href="https://opentelemetry.io/docs/" target="_blank" class="text-indigo-600 hover:underline">OpenTelemetry Official Docs &rarr;</a></li>
+        <li><a href="https://www.jaegertracing.io/docs/" target="_blank" class="text-indigo-600 hover:underline">Jaeger Tracing Documentation &rarr;</a></li>
+        <li><a href="https://opentelemetry.io/docs/collector/" target="_blank" class="text-indigo-600 hover:underline">OTel Collector Guide &rarr;</a></li>
+    </ul>
 </section>
 
                 </div>

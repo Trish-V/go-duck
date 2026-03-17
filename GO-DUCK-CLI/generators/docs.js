@@ -4,7 +4,7 @@ import Handlebars from 'handlebars';
 import chalk from 'chalk';
 import { fileURLToPath } from 'url';
 
-export const generateDocumentation = async (config, entities, outputDir, enums = []) => {
+export const generateDocumentation = async (config, entities, outputDir, enums = [], openEntities = []) => {
     console.log(chalk.cyan('Generating Multi-Page Developer Guide Web App...'));
 
     const docsDir = path.join(outputDir, 'docs', 'web');
@@ -40,13 +40,19 @@ export const generateDocumentation = async (config, entities, outputDir, enums =
         { file: 'audit', title: 'Audit & Metering' },
         { file: 'security', title: 'Security & Auth' },
         { file: 'observability', title: 'Observability' },
+        { file: 'datadog', title: 'Datadog' },
+        { file: 'mosquitto', title: 'Mosquitto' },
+        { file: 'redis', title: 'Redis' },
+        { file: 'otel', title: 'OpenTelemetry & Jaeger' },
+        { file: 'keycloak', title: 'Keycloak' },
         { file: 'integrations', title: 'Client Integrations' }
     ];
 
     const context = {
         appName: config.name || 'GO-DUCK App',
         entities: entities,
-        enums: enums
+        enums: enums,
+        openEntities: openEntities
     };
 
     for (const page of pages) {
