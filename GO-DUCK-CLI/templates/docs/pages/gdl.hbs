@@ -136,6 +136,40 @@ entity Person {
     </div>
 </section>
 
+<section class="mb-12">
+    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+        <span class="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center mr-3 text-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+        </span>
+        Public API Exposure (Open APIs)
+    </h2>
+    <p class="mb-6 text-slate-600 leading-relaxed">By default, all generated APIs are secured via JWT. The <code>open</code> keyword allows you to expose specific entities or actions publicly under the <code>/open/api</code> prefix.</p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-slate-900 rounded-xl p-5 text-sm">
+            <h4 class="text-slate-400 text-xs font-bold uppercase mb-3 text-white">Basic Exposure</h4>
+            <pre><code class="language-plaintext"># Open all actions for all entities
+open *
+
+# Open all actions for specific entities
+open Car, Person</code></pre>
+        </div>
+        <div class="bg-slate-900 rounded-xl p-5 text-sm">
+            <h4 class="text-slate-400 text-xs font-bold uppercase mb-3 text-white">Granular Permissions</h4>
+            <pre><code class="language-plaintext"># Open only specific CRUD actions
+open Car(read, update)
+open Person(read)
+
+# Wildcard with restrictions
+open *(read)</code></pre>
+        </div>
+    </div>
+
+    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r">
+        <p class="text-sm text-blue-900 leading-relaxed"><strong>Note:</strong> Opening an API does <u>not</u> remove the secured version. Full CRUD APIs remain available under <code>/api</code> and require authentication as usual.</p>
+    </div>
+</section>
+
 <section class="mb-10">
     <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
         <span class="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center mr-3 text-sm">

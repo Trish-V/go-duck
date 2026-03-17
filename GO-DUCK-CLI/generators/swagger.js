@@ -61,7 +61,7 @@ export const generateSwaggerDocs = async (config, entities, outputDir, openEntit
             if (wildcard.actions.includes(action.toLowerCase())) return true;
         }
 
-        const entry = openEntities.find(e => e.name === entityName);
+        const entry = openEntities.find(e => e.name.toLowerCase() === entityName.toLowerCase());
         if (entry) {
             if (!action) return true;
             if (entry.actions.includes(action.toLowerCase())) return true;
@@ -174,6 +174,29 @@ export const generateSwaggerDocs = async (config, entities, outputDir, openEntit
                     content: { 'application/json': { schema: { type: 'array', items: { $ref: `#/components/schemas/${capitalized}` } } } }
                 },
                 responses: { 200: { description: 'Updated' } }
+            }, 'update');
+
+            regPath(`${basePath}/${name}s/bulk`, 'patch', {
+                summary: `Bulk Patch ${capitalized}s`,
+                parameters: [...commonHeaders],
+                requestBody: {
+                    required: true,
+                    content: { 
+                        'application/json': { 
+                            schema: { 
+                                type: 'array', 
+                                items: { 
+                                    type: 'object',
+                                    properties: {
+                                        id: { type: 'integer' },
+                                        changes: { type: 'object' }
+                                    }
+                                } 
+                            } 
+                        }
+                    }
+                },
+                responses: { 200: { description: 'Patched' } }
             }, 'update');
         };
 

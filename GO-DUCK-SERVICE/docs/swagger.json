@@ -330,6 +330,50 @@
         "tags": [
           "Car"
         ]
+      },
+      "patch": {
+        "summary": "Bulk Patch Cars ",
+        "parameters": [
+          {
+            "name": "X-Tenant-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "default"
+            },
+            "description": "Multi-tenancy context identifier"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "changes": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Patched"
+          }
+        },
+        "tags": [
+          "Car"
+        ]
       }
     },
     "/open/api/cars": {
@@ -558,6 +602,55 @@
         "responses": {
           "200": {
             "description": "Updated"
+          }
+        },
+        "tags": [
+          "Car (Public)"
+        ],
+        "security": [
+          {
+            "TenantID": []
+          }
+        ]
+      },
+      "patch": {
+        "summary": "Bulk Patch Cars (Public)",
+        "parameters": [
+          {
+            "name": "X-Tenant-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "default"
+            },
+            "description": "Multi-tenancy context identifier"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "changes": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Patched"
           }
         },
         "tags": [
@@ -883,6 +976,50 @@
         "responses": {
           "200": {
             "description": "Updated"
+          }
+        },
+        "tags": [
+          "Person"
+        ]
+      },
+      "patch": {
+        "summary": "Bulk Patch Persons ",
+        "parameters": [
+          {
+            "name": "X-Tenant-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "default"
+            },
+            "description": "Multi-tenancy context identifier"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "changes": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Patched"
           }
         },
         "tags": [

@@ -211,17 +211,32 @@
         </span>
         Security & Context
     </h2>
-    <div class="bg-rose-50 border border-rose-100 rounded-2xl p-6 flex items-start">
-        <div class="bg-rose-100 p-2 rounded-lg mr-4">
-            <svg class="w-6 h-6 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+        <div class="bg-rose-50 border border-rose-100 rounded-2xl p-6 flex items-start shadow-sm">
+            <div class="bg-rose-100 p-2 rounded-lg mr-4">
+                <svg class="w-6 h-6 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            </div>
+            <div>
+                <h4 class="font-bold text-rose-900 mb-1">Secured Stack (/api)</h4>
+                <p class="text-rose-700 text-[11px] leading-relaxed mb-4">Mandatory for all default CRUD operations. Requires full OIDC authentication.</p>
+                <ul class="space-y-2 text-[10px] font-mono text-rose-800">
+                    <li><span class="font-bold uppercase">Authorization:</span> Bearer &lt;JWT&gt;</li>
+                    <li><span class="font-bold uppercase">X-Tenant-ID:</span> &lt;ID&gt;</li>
+                </ul>
+            </div>
         </div>
-        <div>
-            <h4 class="font-bold text-rose-900 mb-1">Mandatory Headers</h4>
-            <p class="text-rose-700 text-sm leading-relaxed mb-4">Every Go-Duck API request must satisfy the Identity and Multi-Tenancy gatekeepers.</p>
-            <ul class="space-y-2 text-xs font-mono text-rose-800">
-                <li><span class="font-bold">Authorization:</span> Bearer &lt;Keycloak_JWT&gt;</li>
-                <li><span class="font-bold">X-Tenant-ID:</span> Subdomain or ID of the tenant dashboard</li>
-            </ul>
+        <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-6 flex items-start shadow-sm">
+            <div class="bg-emerald-100 p-2 rounded-lg mr-4">
+                <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>
+            </div>
+            <div>
+                <h4 class="font-bold text-emerald-900 mb-1 text-xs">Public Stack (/open/api)</h4>
+                <p class="text-emerald-700 text-[11px] leading-relaxed mb-4">Bypasses JWT authentication for specific endpoints marked as <code>open</code> in GDL.</p>
+                <ul class="space-y-2 text-[10px] font-mono text-emerald-800">
+                    <li class="line-through text-slate-400 opacity-50"><span class="font-bold uppercase">Authorization</span></li>
+                    <li><span class="font-bold uppercase">X-Tenant-ID:</span> &lt;ID&gt;</li>
+                </ul>
+            </div>
         </div>
     </div>
 </section>

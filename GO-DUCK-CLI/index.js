@@ -218,7 +218,7 @@ Handlebars.registerHelper('isOpen', (entityName, openEntities, action) => {
         if (wildcard.actions.includes(action.toLowerCase())) return true;
     }
 
-    const entry = openEntities.find(e => e.name === entityName);
+    const entry = openEntities.find(e => e.name.toLowerCase() === entityName.toLowerCase());
     if (entry) {
         if (typeof action !== 'string') return true;
         if (entry.actions.includes(action.toLowerCase())) return true;

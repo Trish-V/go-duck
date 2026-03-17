@@ -21,7 +21,10 @@ import path from 'path';
  */
 
 export const parseGDL = async (filePath) => {
-    const content = await fs.readFile(filePath, 'utf8');
+    const rawContent = await fs.readFile(filePath, 'utf8');
+    // Strip single-line (//) and multi-line (/* */) comments to prevent parsing artifacts
+    const content = rawContent.replace(/\/\/.*|\/\*[\s\S]*?\*\//g, '');
+    
     const entities = [];
     const relationships = [];
     const enums = [];
