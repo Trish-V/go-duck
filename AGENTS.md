@@ -14,10 +14,10 @@
 - **Command Architecture**:
   - `create`: Orchestrates the provision of a fresh microservice with dual-protocol support (Gin & Kratos).
   - `import-gdl`: Performs **Stateful Incremental Updates**, intelligently detecting schema deltas (entities, fields, relations).
-- **Template System**: High-fidelity Handlebars templates for Go code, Protobuf definitions, and Liquibase XML.
+- **Template System**: High-fidelity Handlebars templates for Go code, Protobuf definitions, and Goose SQL migrations.
 - **Persistence Intelligence**: Stores entity snapshots in `.go-duck/` to maintain 100% schema integrity during evolution.
 
-### Implemented Features (The 260% Milestone)
+### Implemented Features (The 280% Milestone)
 
 #### 1. Core & Generic Layers
 - **Full CRUD REST APIs**: Automatically generated with pagination, filtering, and **Eager/Lazy Loading** support via `?eager=true`.
@@ -52,12 +52,11 @@
 - **CI/CD**: GitHub Actions workflows for automated testing and container publishing.
 
 #### 6. Advanced Migration & GDL Engine
-- **Refined Liquibase Structure**: Organized `migrations/liquibase/changelogs/` with atomic, timestamped, and descriptive filenames.
-- **Enhanced GDL Types**: Support for `Text` (Long string), `String(N)` (Custom VARCHAR), `unique` constraints, and native `JSON` / `JSONB` structures leveraging `gorm.io/datatypes`.
+- **Go-Native Goose Migrations**: Fully migrated from Liquibase to Goose for a zero-dependency, Go-native migration flow.
+- **Embedded SQL Assets**: Uses `go:embed` to bundle timestamped SQL migrations directly into the binary, perfect for distroless deployments.
+- **Idempotent Changelog**: Custom `database_changelog` table tracking applied migrations with atomic statement blocks.
+- **Enhanced GDL Types**: Support for `Text`, `String(N)`, `unique` constraints, and native `JSONB` structures.
 - **Enum Support**: Native `enum` block parsing and generation of Go string enums, GraphQL enums, and Proto definitions.
-- **Automated FK Optimization**: Automatic index generation and smart nullability for Foreign Keys based on GDL schema.
-- **JHipster-style Needle Support**: Comment-based anchors (`go-duck-needle-*`) in key files for safe, evolutionary code injection.
-- **Atomic Operations**: Prevents "ghost" migration references; only updates master changelog if changes are physically written.
 
 #### 7. Gorgeous Automated Documentation
 - **Multi-page Developer Guide**: Auto-scaffolded gorgeous HTML portal with "Apple-style" modern UI.
@@ -78,7 +77,7 @@
 - **Web**: Gin Gonic + Gorilla WS
 - **gRPC**: Kratos
 - **ORM**: GORM (PostgreSQL)
-- **Migrations**: Liquibase
+- **Migrations**: Goose (SQL)
 - **Config**: Viper
 - **Identity**: Keycloak (OIDC)
 - **Caching**: Redis

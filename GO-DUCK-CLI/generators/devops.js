@@ -114,8 +114,8 @@ services:
       POSTGRES_DB: go_duck_master
     ports:
       - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+    # volumes:
+    #   - postgres_data:/var/lib/postgresql/data
     networks:
       - go-duck-net
 
