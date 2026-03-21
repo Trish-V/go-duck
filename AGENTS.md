@@ -45,7 +45,9 @@
 - **Statsd Metrics**: Infrastructure performance tracing and custom metric pushing.
 
 #### 5. Deployment & Cloud-Native
-- **Dockerization**: Multi-stage `Dockerfile` for lean production images.
+- **DevOps Folder Structure**: All Docker, Keycloak, and K8s configuration files are moved to a centralized `devops/` folder.
+- **Dockerization**: Multi-stage `Dockerfile` and `docker-compose.yml` located in `devops/` for project-level isolation.
+- **Keycloak Realm Import**: Automated generation of `realm-config/` with pre-configured realm exports for instant OIDC setup.
 - **Orchestration**: `docker-compose.yml` for local development with all dependencies (Postgres, Redis, MQTT, Keycloak, OTel).
 - **CI/CD**: GitHub Actions workflows for automated testing and container publishing.
 

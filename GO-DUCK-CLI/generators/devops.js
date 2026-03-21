@@ -3,13 +3,27 @@ import path from 'path';
 import chalk from 'chalk';
 
 export const generateDeploymentArtifacts = async (config, outputDir) => {
-    const k8sDir = path.join(outputDir, 'k8s');
+    const devopsDir = path.join(outputDir, 'devops');
+    const k8sDir = path.join(devopsDir, 'k8s');
+    const keycloakDir = path.join(devopsDir, 'keycloak');
+    const realmConfigDir = path.join(keycloakDir, 'realm-config');
     const githubDir = path.join(outputDir, '.github/workflows');
+
+    await fs.ensureDir(devopsDir);
     await fs.ensureDir(k8sDir);
+    await fs.ensureDir(keycloakDir);
+    await fs.ensureDir(realmConfigDir);
     await fs.ensureDir(githubDir);
 
     const appName = config.name || 'go-duck-app';
     const appPort = 8080;
+
+    // --- Copy Keycloak Realm Template ---
+    const cliRootDir = path.resolve(path.dirname(import.meta.url.replace('file://', '')), '../../');
+    const realmTemplatePath = path.join(cliRootDir, 'realm-export-template.json');
+    if (await fs.pathExists(realmTemplatePath)) {
+        await fs.copy(realmTemplatePath, path.join(realmConfigDir, 'realm-export.json'));
+    }
 
     // --- 1. Dockerfile (Multi-stage, lean production image) ---
     const dockerfile = `
@@ -39,7 +53,9 @@ version: '3.9'
 
 services:
   app:
-    build: .
+    build:
+      context: ..
+      dockerfile: devops/Dockerfile
     container_name: ${appName}
     ports:
       - "${appPort}:${appPort}"
@@ -113,10 +129,12 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:23.0
     container_name: ${appName}-keycloak
-    command: start-dev
+    command: start-dev --import-realm
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
+    volumes:
+      - ./keycloak/realm-config:/opt/keycloak/data/import
     ports:
       - "8180:8080"
     networks:
@@ -202,11 +220,11 @@ jobs:
           tags: \${{ secrets.DOCKER_USERNAME }}/${appName}:latest,\${{ secrets.DOCKER_USERNAME }}/${appName}:\${{ github.sha }}
 `;
 
-    await fs.writeFile(path.join(outputDir, 'Dockerfile'), dockerfile);
-    await fs.writeFile(path.join(outputDir, 'docker-compose.yml'), dockerCompose);
+    await fs.writeFile(path.join(devopsDir, 'Dockerfile'), dockerfile);
+    await fs.writeFile(path.join(devopsDir, 'docker-compose.yml'), dockerCompose);
     await fs.writeFile(path.join(k8sDir, 'mosquitto.conf'), mosquittoConf);
     await fs.writeFile(path.join(githubDir, 'ci.yml'), ciWorkflow);
     await fs.writeFile(path.join(githubDir, 'cd.yml'), cdWorkflow);
 
-    console.log(chalk.gray('  Generated Dockerfile, Docker Compose & GitHub Actions CI/CD'));
+    console.log(chalk.gray('  Generated devops/Dockerfile, devops/docker-compose.yml & GitHub Actions CI/CD'));
 };

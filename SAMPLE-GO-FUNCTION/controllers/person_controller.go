@@ -1,232 +1,364 @@
 package controllers
 
 import (
-"fmt"
-"net/http"
-"strconv"
+	"fmt"
+	"net/http"
+	"strconv"
 
-"go-duck/config"
-"go-duck/messaging"
-"go-duck/models"
-"go-duck/cache"
-"go-duck/resilience"
+	"go-duck/config"
+	"go-duck/messaging"
+	"go-duck/models"
+	"go-duck/cache"
+	"go-duck/resilience"
 
-"github.com/gin-gonic/gin"
-"gorm.io/gorm"
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type PersonController struct {
-DB *gorm.DB
-Config *config.Config
+	DB *gorm.DB
+	Config *config.Config
 }
 
-// CreatePerson
+// Create handles creating a new Person
 func (ctrl *PersonController) Create(c *gin.Context) {
-tenant, _ := c.Get("tenantDB")
-tenantStr := fmt.Sprintf("%v", tenant)
-ctx := c.Request.Context()
+	id := c.Param("id") // Not used for create usually, but keeping consistency with context
+	tenant, _ := c.Get("tenantDB")
+	tenantStr := fmt.Sprintf("%v", tenant)
+	ctx := c.Request.Context()
 
-var entity models.Person
-if err := c.ShouldBindJSON(&entity); err != nil {
-c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-return
+	db := ctrl.DB
+	if tdb, exists := c.Get("tenantDBConn"); exists {
+		db = tdb.(*gorm.DB)
+	}
+
+	var entity models.Person
+	if err := c.ShouldBindJSON(&entity); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := db.WithContext(ctx).Create(&entity).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Dynamic Cache Invalidation (Tenant Aware)
+	cache.ClearPattern(tenantStr + ":Person*")
+
+	// MQTT Event (Resilient)
+	resilience.Execute(func() (interface{}, error) {
+		messaging.PublishEvent(ctrl.Config.GoDuck.Messaging.MQTT.TopicPrefix, "CREATE", "Person", entity, nil)
+		return nil, nil
+	})
+
+	c.JSON(http.StatusCreated, entity)
 }
-if err := ctrl.DB.WithContext(ctx).Create(&entity).Error; err != nil {
-c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-return
-}
 
-// Dynamic Cache Invalidation (Tenant Aware)
-cache.ClearPattern(tenantStr + ":Person*")
-
-// MQTT Event (Resilient)
-resilience.Execute(func() (interface{}, error) {
-messaging.PublishEvent(ctrl.Config.GoDuck.Messaging.MQTT.TopicPrefix, "CREATE", "Person", entity, nil)
-return nil, nil
-})
-
-c.JSON(http.StatusCreated, entity)
-}
-
-// GetAllPersons (with filtering, pagination, and lazy/eager loading)
+// GetAll handles fetching all Persons with filtering and pagination
 func (ctrl *PersonController) GetAll(c *gin.Context) {
-var entities []models.Person
-ctx := c.Request.Context()
-query := ctrl.DB.WithContext(ctx)
+	db := ctrl.DB
+	if tdb, exists := c.Get("tenantDBConn"); exists {
+		db = tdb.(*gorm.DB)
+	}
+	var entities []models.Person
+	ctx := c.Request.Context()
+	query := db.WithContext(ctx)
 
-// 1. Pagination
-page, _ := strconv.Atoi(c.DefaultQuery("page", "0"))
-size, _ := strconv.Atoi(c.DefaultQuery("size", "20"))
-query = query.Offset(page * size).Limit(size)
+	// 1. Pagination
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "0"))
+	size, _ := strconv.Atoi(c.DefaultQuery("size", "20"))
+	query = query.Offset(page * size).Limit(size)
 
-// 2. Eager Loading (Full Bodied) vs Lazy (IDs Only)
-eager := c.Query("eager") == "true"
-if eager {
-query = query.Preload("Car")
-query = query.Preload("Owner")
-}
+	// 2. Eager Loading
+	eager := c.Query("eager") == "true"
+	if eager {
+		query = query.Preload("Car")
+	}
 
-// 3. Simple Filtering (Optimized for CRUD)
-// Example: ?name=eq.John
-for key, values := range c.Request.URL.Query() {
-if key == "page" || key == "size" || key == "eager" || key == "sort" {
-continue
-}
-for _, val := range values {
-query = query.Where(key+" = ?", val)
-}
-}
+	// 3. Simple Filtering
+	for key, values := range c.Request.URL.Query() {
+		if key == "page" || key == "size" || key == "eager" || key == "sort" {
+			continue
+		}
+		for _, val := range values {
+			query = query.Where(key+" = ?", val)
+		}
+	}
 
-if err := query.Find(&entities).Error; err != nil {
-c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-return
-}
-c.JSON(http.StatusOK, entities)
+	if err := query.Find(&entities).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, entities)
 }
 
-// GetByID
+// GetByID handles fetching a single Person by ID
 func (ctrl *PersonController) GetByID(c *gin.Context) {
-id := c.Param("id")
-tenant, _ := c.Get("tenantDB")
-tenantStr := fmt.Sprintf("%v", tenant)
-ctx := c.Request.Context()
+	id := c.Param("id")
+	tenant, _ := c.Get("tenantDB")
+	tenantStr := fmt.Sprintf("%v", tenant)
+	ctx := c.Request.Context()
 
-// Tenant-Aware Cache Key
-cacheKey := fmt.Sprintf("%s:Person:%s", tenantStr, id)
+	// Tenant-Aware Cache Key
+	cacheKey := fmt.Sprintf("%s:Person:%s", tenantStr, id)
 
-var entity models.Person
+	var entity models.Person
 
-// 1. Check Distributed Cache (Redis)
-if cache.Get(cacheKey, &entity) {
-c.JSON(http.StatusOK, entity)
-return
+	// 1. Check Distributed Cache
+	if cache.Get(cacheKey, &entity) {
+		c.JSON(http.StatusOK, entity)
+		return
+	}
+
+	// 2. Fallback to DB
+	db := ctrl.DB
+	if tdb, exists := c.Get("tenantDBConn"); exists {
+		db = tdb.(*gorm.DB)
+	}
+	query := db.WithContext(ctx)
+	if c.Query("eager") == "true" {
+		query = query.Preload("Car")
+	}
+
+	if err := query.First(&entity, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Resource not found"})
+		return
+	}
+
+	// 3. Update Cache
+	resilience.Execute(func() (interface{}, error) {
+		cache.Set(cacheKey, entity, ctrl.Config.GoDuck.Cache.Redis.TTL)
+		return nil, nil
+	})
+
+	c.JSON(http.StatusOK, entity)
 }
 
-// 2. Fallback to DB (With Context for Tracing)
-query := ctrl.DB.WithContext(ctx)
-if c.Query("eager") == "true" {
-query = query.Preload("Car")
-query = query.Preload("Owner")
-}
-
-if err := query.First(&entity, id).Error; err != nil {
-c.JSON(http.StatusNotFound, gin.H{"error": "Resource not found"})
-return
-}
-
-// 3. Update Cache (Resilient)
-resilience.Execute(func() (interface{}, error) {
-cache.Set(cacheKey, entity, ctrl.Config.GoDuck.Cache.Redis.TTL)
-return nil, nil
-})
-
-c.JSON(http.StatusOK, entity)
-}
-
-// Update (PUT) - Full Update
+// Update handles full update of a Person
 func (ctrl *PersonController) Update(c *gin.Context) {
-id := c.Param("id")
-tenant, _ := c.Get("tenantDB")
-tenantStr := fmt.Sprintf("%v", tenant)
-ctx := c.Request.Context()
+	id := c.Param("id")
+	tenant, _ := c.Get("tenantDB")
+	tenantStr := fmt.Sprintf("%v", tenant)
+	ctx := c.Request.Context()
 
-var entity models.Person
-if err := ctrl.DB.WithContext(ctx).First(&entity, id).Error; err != nil {
-c.JSON(http.StatusNotFound, gin.H{"error": "Resource not found"})
-return
+	db := ctrl.DB
+	if tdb, exists := c.Get("tenantDBConn"); exists {
+		db = tdb.(*gorm.DB)
+	}
+
+	var entity models.Person
+	if err := db.WithContext(ctx).First(&entity, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Resource not found"})
+		return
+	}
+
+	prev := entity
+	if err := c.ShouldBindJSON(&entity); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := db.WithContext(ctx).Save(&entity).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Cache Invalidation
+	cache.Delete(fmt.Sprintf("%s:Person:%s", tenantStr, id))
+
+	// MQTT Event
+	resilience.Execute(func() (interface{}, error) {
+		messaging.PublishEvent(ctrl.Config.GoDuck.Messaging.MQTT.TopicPrefix, "UPDATE", "Person", entity, prev)
+		return nil, nil
+	})
+
+	c.JSON(http.StatusOK, entity)
 }
 
-// Capture Previous State
-prev := entity
-
-if err := c.ShouldBindJSON(&entity); err != nil {
-c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-return
-}
-
-if err := ctrl.DB.WithContext(ctx).Save(&entity).Error; err != nil {
-c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-return
-}
-
-// Cache Invalidation (Tenant Aware)
-cache.Delete(fmt.Sprintf("%s:Person:%s", tenantStr, id))
-
-// MQTT Event (Resilient)
-resilience.Execute(func() (interface{}, error) {
-messaging.PublishEvent(ctrl.Config.GoDuck.Messaging.MQTT.TopicPrefix, "UPDATE", "Person", entity, prev)
-return nil, nil
-})
-
-c.JSON(http.StatusOK, entity)
-}
-
-// Patch (PATCH) - Partial Update
+// Patch handles partial update of a Person
 func (ctrl *PersonController) Patch(c *gin.Context) {
-id := c.Param("id")
-tenant, _ := c.Get("tenantDB")
-tenantStr := fmt.Sprintf("%v", tenant)
-ctx := c.Request.Context()
+	id := c.Param("id")
+	tenant, _ := c.Get("tenantDB")
+	tenantStr := fmt.Sprintf("%v", tenant)
+	ctx := c.Request.Context()
 
-var entity models.Person
-if err := ctrl.DB.WithContext(ctx).First(&entity, id).Error; err != nil {
-c.JSON(http.StatusNotFound, gin.H{"error": "Resource not found"})
-return
+	db := ctrl.DB
+	if tdb, exists := c.Get("tenantDBConn"); exists {
+		db = tdb.(*gorm.DB)
+	}
+
+	var entity models.Person
+	if err := db.WithContext(ctx).First(&entity, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Resource not found"})
+		return
+	}
+	prev := entity
+
+	var updates map[string]interface{}
+	if err := c.ShouldBindJSON(&updates); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := db.WithContext(ctx).Model(&entity).Updates(updates).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Fetch updated
+	db.WithContext(ctx).First(&entity, id)
+
+	// Cache Invalidation
+	cache.Delete(fmt.Sprintf("%s:Person:%s", tenantStr, id))
+
+	// MQTT Event
+	resilience.Execute(func() (interface{}, error) {
+		messaging.PublishEvent(ctrl.Config.GoDuck.Messaging.MQTT.TopicPrefix, "PATCH", "Person", entity, prev)
+		return nil, nil
+	})
+
+	c.JSON(http.StatusOK, gin.H{"message": "Updated successfully", "data": entity})
 }
-prev := entity
 
-var updates map[string]interface{}
-if err := c.ShouldBindJSON(&updates); err != nil {
-c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-return
+// BulkCreate handles creating multiple Persons
+func (ctrl *PersonController) BulkCreate(c *gin.Context) {
+	tenant, _ := c.Get("tenantDB")
+	tenantStr := fmt.Sprintf("%v", tenant)
+	ctx := c.Request.Context()
+
+	db := ctrl.DB
+	if tdb, exists := c.Get("tenantDBConn"); exists {
+		db = tdb.(*gorm.DB)
+	}
+
+	var entities []models.Person
+	if err := c.ShouldBindJSON(&entities); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := db.WithContext(ctx).Create(&entities).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	cache.ClearPattern(tenantStr + ":Person*")
+
+	resilience.Execute(func() (interface{}, error) {
+		messaging.PublishEvent(ctrl.Config.GoDuck.Messaging.MQTT.TopicPrefix, "BULK_CREATE", "Person", entities, nil)
+		return nil, nil
+	})
+
+	c.JSON(http.StatusCreated, entities)
 }
 
-if err := ctrl.DB.WithContext(ctx).Model(&entity).Updates(updates).Error; err != nil {
-c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-return
+// BulkUpdate handles updating multiple Persons
+func (ctrl *PersonController) BulkUpdate(c *gin.Context) {
+	tenant, _ := c.Get("tenantDB")
+	tenantStr := fmt.Sprintf("%v", tenant)
+	ctx := c.Request.Context()
+
+	db := ctrl.DB
+	if tdb, exists := c.Get("tenantDBConn"); exists {
+		db = tdb.(*gorm.DB)
+	}
+
+	var entities []models.Person
+	if err := c.ShouldBindJSON(&entities); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		for _, e := range entities {
+			if err := tx.Save(&e).Error; err != nil {
+				return err
+			}
+			cache.Delete(fmt.Sprintf("%s:Person:%d", tenantStr, e.ID))
+		}
+		return nil
+	})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	resilience.Execute(func() (interface{}, error) {
+		messaging.PublishEvent(ctrl.Config.GoDuck.Messaging.MQTT.TopicPrefix, "BULK_UPDATE", "Person", entities, nil)
+		return nil, nil
+	})
+
+	c.JSON(http.StatusOK, entities)
 }
 
-// Fetch updated
-ctrl.DB.WithContext(ctx).First(&entity, id)
+// BulkPatch handles partial updating multiple Persons
+func (ctrl *PersonController) BulkPatch(c *gin.Context) {
+	tenant, _ := c.Get("tenantDB")
+	tenantStr := fmt.Sprintf("%v", tenant)
+	ctx := c.Request.Context()
 
-// Cache Invalidation (Tenant Aware)
-cache.Delete(fmt.Sprintf("%s:Person:%s", tenantStr, id))
+	db := ctrl.DB
+	if tdb, exists := c.Get("tenantDBConn"); exists {
+		db = tdb.(*gorm.DB)
+	}
 
-// MQTT Event (Resilient)
-resilience.Execute(func() (interface{}, error) {
-messaging.PublishEvent(ctrl.Config.GoDuck.Messaging.MQTT.TopicPrefix, "PATCH", "Person", entity, prev)
-return nil, nil
-})
+	var updates []struct {
+		ID      uint                   `json:"id"`
+		Changes map[string]interface{} `json:"changes"`
+	}
+	if err := c.ShouldBindJSON(&updates); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-c.JSON(http.StatusOK, gin.H{"message": "Updated successfully", "data": entity})
+	err := db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		for _, u := range updates {
+			if err := tx.Model(&models.Person{}).Where("id = ?", u.ID).Updates(u.Changes).Error; err != nil {
+				return err
+			}
+			cache.Delete(fmt.Sprintf("%s:Person:%d", tenantStr, u.ID))
+		}
+		return nil
+	})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Bulk patch completed successfully"})
 }
 
-// Delete
+// Delete handles deleting a Person by ID
 func (ctrl *PersonController) Delete(c *gin.Context) {
-id := c.Param("id")
-tenant, _ := c.Get("tenantDB")
-tenantStr := fmt.Sprintf("%v", tenant)
-ctx := c.Request.Context()
+	id := c.Param("id")
+	tenant, _ := c.Get("tenantDB")
+	tenantStr := fmt.Sprintf("%v", tenant)
+	ctx := c.Request.Context()
 
-var entity models.Person
-if err := ctrl.DB.WithContext(ctx).First(&entity, id).Error; err != nil {
-c.JSON(http.StatusNotFound, gin.H{"error": "Resource not found"})
-return
-}
+	db := ctrl.DB
+	if tdb, exists := c.Get("tenantDBConn"); exists {
+		db = tdb.(*gorm.DB)
+	}
 
-if err := ctrl.DB.WithContext(ctx).Delete(&entity).Error; err != nil {
-c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-return
-}
+	var entity models.Person
+	if err := db.WithContext(ctx).First(&entity, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Resource not found"})
+		return
+	}
 
-// Cache Invalidation (Tenant Aware)
-cache.Delete(fmt.Sprintf("%s:Person:%s", tenantStr, id))
+	if err := db.WithContext(ctx).Delete(&entity).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
-// MQTT Event (Resilient)
-resilience.Execute(func() (interface{}, error) {
-messaging.PublishEvent(ctrl.Config.GoDuck.Messaging.MQTT.TopicPrefix, "DELETE", "Person", entity, nil)
-return nil, nil
-})
+	cache.Delete(fmt.Sprintf("%s:Person:%s", tenantStr, id))
 
-c.JSON(http.StatusNoContent, nil)
+	resilience.Execute(func() (interface{}, error) {
+		messaging.PublishEvent(ctrl.Config.GoDuck.Messaging.MQTT.TopicPrefix, "DELETE", "Person", entity, nil)
+		return nil, nil
+	})
+
+	c.JSON(http.StatusNoContent, nil)
 }

@@ -140,6 +140,26 @@ mgmt := r.Group("/management")
 mgmt.POST("/db/create", management.CreateDatabaseAndMigrate(masterDB))
 }
 
+// 8.5 Open Application APIs (No Auth)
+openApi := r.Group("/open/api")
+if appConfig.GoDuck.Multitenancy.Enabled {
+    openApi.Use(middleware.PublicTenantMiddleware(masterDB, appConfig))
+}
+{
+    // Car Public Routes
+    carOpenCtrl := controllers.CarController{DB: masterDB, Config: appConfig}
+    openApi.GET("/cars", carOpenCtrl.GetAll)
+    openApi.GET("/cars/:id", carOpenCtrl.GetByID)
+    openApi.PUT("/cars/:id", carOpenCtrl.Update)
+    openApi.PUT("/cars/bulk", carOpenCtrl.BulkUpdate)
+    openApi.PATCH("/cars/:id", carOpenCtrl.Patch)
+    openApi.PATCH("/cars/bulk", carOpenCtrl.BulkPatch)
+    // Person Public Routes
+    personOpenCtrl := controllers.PersonController{DB: masterDB, Config: appConfig}
+    openApi.GET("/persons", personOpenCtrl.GetAll)
+    openApi.GET("/persons/:id", personOpenCtrl.GetByID)
+}
+
 // 9. Secured Application APIs
 api := r.Group("/api")
 api.Use(middleware.JWTMiddleware())
@@ -159,28 +179,28 @@ api.GET("/metering/usage", meteringCtrl.GetUsage)
 searchCtrl := controllers.SearchController{DB: masterDB}
 api.GET("/rpc/:table", searchCtrl.GenericSearch)
 
-// Article Routes
-articleCtrl := controllers.ArticleController{DB: masterDB, Config: appConfig}
-api.POST("/articles", articleCtrl.Create)
-api.POST("/articles/bulk", articleCtrl.BulkCreate)
-api.GET("/articles", articleCtrl.GetAll)
-api.GET("/articles/:id", articleCtrl.GetByID)
-api.PUT("/articles/:id", articleCtrl.Update)
-api.PUT("/articles/bulk", articleCtrl.BulkUpdate)
-api.PATCH("/articles/:id", articleCtrl.Patch)
-api.PATCH("/articles/bulk", articleCtrl.BulkPatch)
-api.DELETE("/articles/:id", articleCtrl.Delete)
-// Author Routes
-authorCtrl := controllers.AuthorController{DB: masterDB, Config: appConfig}
-api.POST("/authors", authorCtrl.Create)
-api.POST("/authors/bulk", authorCtrl.BulkCreate)
-api.GET("/authors", authorCtrl.GetAll)
-api.GET("/authors/:id", authorCtrl.GetByID)
-api.PUT("/authors/:id", authorCtrl.Update)
-api.PUT("/authors/bulk", authorCtrl.BulkUpdate)
-api.PATCH("/authors/:id", authorCtrl.Patch)
-api.PATCH("/authors/bulk", authorCtrl.BulkPatch)
-api.DELETE("/authors/:id", authorCtrl.Delete)
+// Car Routes
+carCtrl := controllers.CarController{DB: masterDB, Config: appConfig}
+api.POST("/cars", carCtrl.Create)
+api.POST("/cars/bulk", carCtrl.BulkCreate)
+api.GET("/cars", carCtrl.GetAll)
+api.GET("/cars/:id", carCtrl.GetByID)
+api.PUT("/cars/:id", carCtrl.Update)
+api.PUT("/cars/bulk", carCtrl.BulkUpdate)
+api.PATCH("/cars/:id", carCtrl.Patch)
+api.PATCH("/cars/bulk", carCtrl.BulkPatch)
+api.DELETE("/cars/:id", carCtrl.Delete)
+// Person Routes
+personCtrl := controllers.PersonController{DB: masterDB, Config: appConfig}
+api.POST("/persons", personCtrl.Create)
+api.POST("/persons/bulk", personCtrl.BulkCreate)
+api.GET("/persons", personCtrl.GetAll)
+api.GET("/persons/:id", personCtrl.GetByID)
+api.PUT("/persons/:id", personCtrl.Update)
+api.PUT("/persons/bulk", personCtrl.BulkUpdate)
+api.PATCH("/persons/:id", personCtrl.Patch)
+api.PATCH("/persons/bulk", personCtrl.BulkPatch)
+api.DELETE("/persons/:id", personCtrl.Delete)
 // go-duck-needle-add-route
 }
 

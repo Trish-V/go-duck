@@ -4,7 +4,7 @@ import chalk from 'chalk';
 
 export const generateTelemetryCode = async (config, outputDir) => {
     const telemetryDir = path.join(outputDir, 'internal/telemetry');
-    const k8sDir = path.join(outputDir, 'k8s');
+    const k8sDir = path.join(outputDir, 'devops/k8s');
 
     await fs.ensureDir(telemetryDir);
     await fs.ensureDir(k8sDir);

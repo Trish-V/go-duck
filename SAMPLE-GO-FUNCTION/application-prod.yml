@@ -1,7 +1,31 @@
 go-duck:
   name: go-duck
   version: 1.0.0
-  description: go function generator
+  description: Evolutionary Go Microservice with Dual-Protocol & Dynamic Multi-Tenancy
+  server:
+    port: 8080
+    read-timeout: 30s
+    write-timeout: 30s
+    grpc:
+      addr: ':9000'
+      network: tcp
+      timeout: 1s
+    cors:
+      allow-origins:
+        - '*'
+      allow-methods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+      allow-headers:
+        - Origin
+        - Content-Type
+        - Accept
+        - Authorization
+        - X-Tenant-ID
   security:
     keycloak-host: http://localhost:9080
     keycloak-realm: master
@@ -17,64 +41,42 @@ go-duck:
     port: 5432
     username: postgres
     password: password
-    database: go-duck
-    max-open-conns: 100
-    max-idle-conns: 50
+    database: go_duck_master
+    max-open-conns: 25
+    max-idle-conns: 10
     conn-max-lifetime: 5m
-  server:
-    port: 8080
-    read-timeout: 30s
-    write-timeout: 30s
-    grpc:
-      addr: ':9000'
-      network: tcp
-      timeout: 1s
-    cors:
-      allow-origins:
-        - https://your-domain.com
-      allow-methods:
-        - GET
-        - POST
-        - PUT
-        - PATCH
-        - DELETE
-        - OPTIONS
-      allow-headers:
-        - Origin
-        - Content-Type
-        - Accept
-        - Authorization
-  logging:
-    datadog:
-      enabled: true
-      api-key: YOUR_DATADOG_API_KEY
-      site: datadoghq.com
-      service: go-duck
+    ssl-mode: disable
   messaging:
     mqtt:
-      enabled: true
-      broker: tcp://mqtt.production.svc:1883
-      client-id: go-duck-prod
-      username: prod_user
-      password: prod_password
-      topic-prefix: go-duck/events
+      enabled: false
+      broker: tcp://localhost:1883
+      client-id: go-duck-engine
+      username: dev_user
+      password: dev_password
+      topic-prefix: go-duck/notifications
   cache:
     redis:
-      enabled: true
-      host: redis.production.svc:6379
-      password: prod_redis_password
+      enabled: false
+      host: localhost:6379
+      password: ''
       db: 0
-      ttl: 1h
+      ttl: 10m
   resilience:
     circuit-breaker:
       enabled: true
-      failure-threshold: 3
-      success-threshold: 5
-      timeout: 30s
+      failure-threshold: 5
+      success-threshold: 2
+      timeout: 60s
   telemetry:
     otel:
-      enabled: true
-      endpoint: otel-collector.monitoring.svc:4317
-      sampler-ratio: 0.1
+      enabled: false
+      endpoint: localhost:4317
+      sampler-ratio: 1
+  logging:
+    datadog:
+      enabled: false
+      api-key: YOUR_API_KEY
+      site: datadoghq.com
+      service: go-duck-service
 environment:
   active_profile: prod

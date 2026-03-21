@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>go-duck - Security &amp; Auth</title>
+    <title>go-duck - OpenTelemetry &amp; Jaeger</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -107,14 +107,14 @@
                     <li><a href="audit.html" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 hover:bg-indigo-50/80 hover:text-indigo-600 border-left border-transparent">Audit & Metering</a></li>
                     
                     <li class="pt-6 pb-2 px-4"><span class="font-bold text-slate-800 uppercase text-[10px] tracking-widest opacity-70">4. Infrastructure</span></li>
-                    <li><a href="security.html" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 sidebar-link-active shadow-sm">Security & Resilience</a></li>
+                    <li><a href="security.html" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 hover:bg-indigo-50/80 hover:text-indigo-600 border-left border-transparent">Security & Resilience</a></li>
                     <li><a href="observability.html" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 hover:bg-indigo-50/80 hover:text-indigo-600 border-left border-transparent">Observability</a></li>
                     
                     <li class="pt-6 pb-2 px-4"><span class="font-bold text-slate-800 uppercase text-[10px] tracking-widest opacity-70">5. Ecosystem & Integrations</span></li>
                     <li><a href="datadog.html" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 hover:bg-indigo-50/80 hover:text-indigo-600 border-left border-transparent">Datadog Monitoring</a></li>
                     <li><a href="mosquitto.html" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 hover:bg-indigo-50/80 hover:text-indigo-600 border-left border-transparent">Mosquitto MQTT</a></li>
                     <li><a href="redis.html" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 hover:bg-indigo-50/80 hover:text-indigo-600 border-left border-transparent">Redis Caching</a></li>
-                    <li><a href="otel.html" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 hover:bg-indigo-50/80 hover:text-indigo-600 border-left border-transparent">OpenTelemetry & Jaeger</a></li>
+                    <li><a href="otel.html" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 sidebar-link-active shadow-sm">OpenTelemetry & Jaeger</a></li>
                     <li><a href="keycloak.html" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 hover:bg-indigo-50/80 hover:text-indigo-600 border-left border-transparent">Keycloak Identity</a></li>
                     
                     <li class="pt-6 pb-2 px-4"><span class="font-bold text-slate-800 uppercase text-[10px] tracking-widest opacity-70">6. References</span></li>
@@ -132,56 +132,45 @@
                 
                 <!-- Content injected here (raised z-index) -->
                 <div class="relative z-10 prose prose-slate prose-indigo max-w-none">
-                    <h1 class="text-4xl font-extrabold text-gray-900 mb-4">Security & Resilience</h1>
-<p class="text-lg text-gray-600 mb-8">Out-of-the-box infrastructure protecting your core microservices.</p>
+                    <h1 class="text-4xl font-extrabold text-gray-900 mb-4">OpenTelemetry (OTel) & Jaeger</h1>
+<p class="text-lg text-gray-600 mb-8">Master the art of distributed tracing to debug complex inter-service communications in real-time.</p>
 
 <section class="mb-10">
-    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">1. Identity & Access Management (OIDC)</h2>
-    <p class="mb-4">GO-DUCK generated apps utilize strict Keycloak JWT Authorization. No entity router functions without traversing the <code>jwtAuthMiddleware</code> and extracting structural properties of the connected user from the signed payload utilizing the pre-configured realm secret.</p>
-    
-    <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6 rounded-r">
-        <p class="text-indigo-900"><strong>Golden Rule:</strong> In <code>application-dev.yml</code>, ensure your Keycloak Realm, ClientID, and Secret are accurately synced with the local running Docker Keycloak image.</p>
-    </div>
-
-    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">2. Tenant Context Integrity</h2>
-    <p class="mb-4">
-        GO-DUCK implements <strong>Enterprise-Grade Data Isolation</strong>. While the <code>X-Tenant-ID</code> header is required for request context, the system is immune to "Tenant Spoofing" attacks.
-    </p>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
-            <h4 class="font-bold text-slate-900 mb-2">Internal Cross-Verification</h4>
-            <p class="text-xs text-slate-600 leading-relaxed">
-                The <code>TenantMiddleware</code> extracts authorized roles from the signed JWT and performs a server-side lookup of the valid DB context. It then <strong>cross-checks</strong> this against the <code>X-Tenant-ID</code> header.
-            </p>
-        </div>
-        <div class="bg-rose-50 p-5 rounded-xl border border-rose-200">
-            <h4 class="font-bold text-rose-900 mb-2">Spoof Protection</h4>
-            <p class="text-xs text-rose-700 leading-relaxed">
-                If a user attempts to access <code>Tenant-B</code> by modifying headers while their JWT is only valid for <code>Tenant-A</code>, the request is immediately aborted with a <code>403 Forbidden - Security Breach</code> error. 
-                <a href="multitenancy.html" class="text-rose-600 font-bold hover:underline mt-2 inline-block">Learn more about isolation &rarr;</a>
-            </p>
-        </div>
-    </div>
-
-    <h3 class="font-semibold mb-2 mt-6">3. Burst Protection (Rate Limiting)</h3>
-    <p class="mb-4">Using the standard <code>x/time/rate</code> package, a Token Bucket rate limiter is attached to the Gin Engine globally to mitigate DDOS vectors and abusive scripting.</p>
-    <pre><code class="language-yaml"># Inside your application-prod.yml
-go-duck:
-  security:
-    rate-limit:
-      rps: 150.0  # Allow up to 150 Req/Sec
-      burst: 300  # Burstable tokens
-</code></pre>
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">What is OpenTelemetry?</h2>
+    <p class="mb-4 text-gray-700">OpenTelemetry is a collection of tools, APIs, and SDKs used to instrument, generate, collect, and export telemetry data (metrics, logs, and traces). GO-DUCK implements a <strong>"Full-Stack Tracing"</strong> strategy.</p>
 </section>
 
 <section class="mb-10">
-    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">3. Sony/go-breaker (Circuit Breakers)</h2>
-    <p class="mb-4">When a Microservice starts rejecting requests globally due to a failing dependent macro-service (e.g. Redis node goes down / DB locks / MQTT broker drops), your application handles this gracefully by "tripping" an open Circuit Breaker to prevent Request Queue Pile-ups.</p>
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">The Trace Pipeline</h2>
+    <p class="mb-4">Trace context is automatically propagated across your entire stack:</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-center">
+        <div class="p-4 bg-gray-50 border rounded font-semibold text-indigo-700">HTTP Router (Gin)</div>
+        <div class="p-4 bg-gray-50 border rounded font-semibold text-indigo-700">Service/Controller</div>
+        <div class="p-4 bg-gray-50 border rounded font-semibold text-indigo-700">Database (GORM)</div>
+    </div>
     
-    <pre><code class="language-go">resilience.Execute(func() (interface{}, error) {
-    // Risky Network / DB Operations wrapped automatically!
-    return s.repo.DB.First(&entity, req.Id).Error
-})</code></pre>
+    <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6 rounded-r">
+        <p class="text-indigo-900">Each database query is automatically tagged with the <code>trace_id</code> of the incoming HTTP request. This allows you to identify exactly which REST call caused a slow SQL query.</p>
+    </div>
+
+    <h3 class="font-semibold mb-2 mt-6 text-xl">The OTel Collector</h3>
+    <p class="mb-4">GO-DUCK apps don't speak directly to tracing backends. Instead, they export via gRPC to an <strong>otel-collector</strong> sidecar. This collector acts as a buffer and can fan-out data to Jaeger, Datadog, or Honeycomb simultaneously.</p>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Visualizing with Jaeger</h2>
+    <p class="mb-4 text-gray-700">In local development, GO-DUCK spins up a Jaeger instance. It provides a web-based UI to search and visualize your traces.</p>
+    <pre><code class="language-bash"># Open Jaeger UI locally
+open http://localhost:16686</code></pre>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">External Resources</h2>
+    <ul class="space-y-2">
+        <li><a href="https://opentelemetry.io/docs/" target="_blank" class="text-indigo-600 hover:underline">OpenTelemetry Official Docs &rarr;</a></li>
+        <li><a href="https://www.jaegertracing.io/docs/" target="_blank" class="text-indigo-600 hover:underline">Jaeger Tracing Documentation &rarr;</a></li>
+        <li><a href="https://opentelemetry.io/docs/collector/" target="_blank" class="text-indigo-600 hover:underline">OTel Collector Guide &rarr;</a></li>
+    </ul>
 </section>
 
                 </div>

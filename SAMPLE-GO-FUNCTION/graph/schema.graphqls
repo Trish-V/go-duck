@@ -1,67 +1,80 @@
-type Article {
+type Car {
 id: ID!
-title: String!
-content: String!
-status: ArticleStatus!
-publishedDate: String
+name: String!
+model: String!
+year: Int
+price: Float
+color: String
+features: String
 createdBy: String
 createdDate: String
 lastModifiedBy: String
 lastModifiedDate: String
 lastModifiedUserId: String
-author: Author
+owner: Person
 createdAt: String
 updatedAt: String
 }
 
-input CreateArticleInput {
-title: String!
-content: String!
-status: ArticleStatus!
-publishedDate: String
-authorId: ID!
-}
-
-input UpdateArticleInput {
-title: String
-content: String
-status: ArticleStatus
-publishedDate: String
-}
-type Author {
-id: ID!
+input CreateCarInput {
 name: String!
-article: [Article]
-createdAt: String
-updatedAt: String
+model: String!
+year: Int
+price: Float
+color: String
+features: String
+ownerId: ID!
 }
 
-input CreateAuthorInput {
-name: String!
-}
-
-input UpdateAuthorInput {
+input UpdateCarInput {
 name: String
+model: String
+year: Int
+price: Float
+color: String
+features: String
+}
+type Person {
+id: ID!
+firstName: String!
+lastName: String
+email: String
+age: Int
+preferences: String
+car: [Car]
+createdAt: String
+updatedAt: String
 }
 
-enum ArticleStatus {
-  DRAFT
-  PUBLISHED
-  ARCHIVED
+input CreatePersonInput {
+firstName: String!
+lastName: String
+email: String
+age: Int
+preferences: String
 }
+
+input UpdatePersonInput {
+firstName: String
+lastName: String
+email: String
+age: Int
+preferences: String
+}
+
 
 type Query {
-getArticle(id: ID!): Article
-listArticles(page: Int, size: Int): [Article]
-getAuthor(id: ID!): Author
-listAuthors(page: Int, size: Int): [Author]
+getCar(id: ID!): Car
+listCars(page: Int, size: Int): [Car]
+getPerson(id: ID!): Person
+listPersons(page: Int, size: Int): [Person]
 }
 
 type Mutation {
-createArticle(input: CreateArticleInput!): Article
-updateArticle(id: ID!, input: UpdateArticleInput!): Article
-deleteArticle(id: ID!): Boolean
-createAuthor(input: CreateAuthorInput!): Author
-updateAuthor(id: ID!, input: UpdateAuthorInput!): Author
-deleteAuthor(id: ID!): Boolean
+createCar(input: CreateCarInput!): Car
+updateCar(id: ID!, input: UpdateCarInput!): Car
+deleteCar(id: ID!): Boolean
+createPerson(input: CreatePersonInput!): Person
+updatePerson(id: ID!, input: UpdatePersonInput!): Person
+deletePerson(id: ID!): Boolean
 }

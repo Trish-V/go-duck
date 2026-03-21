@@ -31,31 +31,31 @@ c.JSON(http.StatusOK, gin.H{
 }
 
 // Resolver for each entity
-func ResolveArticle(db *gorm.DB, id uint) (*models.Article, error) {
-var e models.Article
+func ResolveCar(db *gorm.DB, id uint) (*models.Car, error) {
+var e models.Car
 if err := db.First(&e, id).Error; err != nil {
 return nil, err
 }
 return &e, nil
 }
 
-func ResolveAllArticles(db *gorm.DB) ([]models.Article, error) {
-var list []models.Article
+func ResolveAllCars(db *gorm.DB) ([]models.Car, error) {
+var list []models.Car
 if err := db.Find(&list).Error; err != nil {
 return nil, err
 }
 return list, nil
 }
-func ResolveAuthor(db *gorm.DB, id uint) (*models.Author, error) {
-var e models.Author
+func ResolvePerson(db *gorm.DB, id uint) (*models.Person, error) {
+var e models.Person
 if err := db.First(&e, id).Error; err != nil {
 return nil, err
 }
 return &e, nil
 }
 
-func ResolveAllAuthors(db *gorm.DB) ([]models.Author, error) {
-var list []models.Author
+func ResolveAllPersons(db *gorm.DB) ([]models.Person, error) {
+var list []models.Person
 if err := db.Find(&list).Error; err != nil {
 return nil, err
 }

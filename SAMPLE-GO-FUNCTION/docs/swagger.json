@@ -7,17 +7,14 @@
   },
   "servers": [
     {
-      "url": "http://localhost:8080/api",
+      "url": "http://localhost:8080",
       "description": "Local Development Server"
     }
   ],
   "paths": {
-    "/articles": {
+    "/api/cars": {
       "post": {
-        "tags": [
-          "Article"
-        ],
-        "summary": "Create a new Article",
+        "summary": "Create a new Car ",
         "parameters": [
           {
             "name": "X-Tenant-ID",
@@ -35,7 +32,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Article"
+                "$ref": "#/components/schemas/Car"
               }
             }
           }
@@ -46,18 +43,18 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Article"
+                  "$ref": "#/components/schemas/Car"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Car"
+        ]
       },
       "get": {
-        "tags": [
-          "Article"
-        ],
-        "summary": "Get all Articles",
+        "summary": "Get all Cars ",
         "parameters": [
           {
             "name": "X-Tenant-ID",
@@ -102,21 +99,21 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Article"
+                    "$ref": "#/components/schemas/Car"
                   }
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Car"
+        ]
       }
     },
-    "/articles/{id}": {
+    "/api/cars/{id}": {
       "get": {
-        "tags": [
-          "Article"
-        ],
-        "summary": "Get Article by ID",
+        "summary": "Get Car by ID ",
         "parameters": [
           {
             "name": "X-Tenant-ID",
@@ -150,18 +147,18 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Article"
+                  "$ref": "#/components/schemas/Car"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Car"
+        ]
       },
       "put": {
-        "tags": [
-          "Article"
-        ],
-        "summary": "Update Article",
+        "summary": "Update Car ",
         "parameters": [
           {
             "name": "X-Tenant-ID",
@@ -188,18 +185,49 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Article"
+                  "$ref": "#/components/schemas/Car"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Car"
+        ]
+      },
+      "patch": {
+        "summary": "Patch Car ",
+        "parameters": [
+          {
+            "name": "X-Tenant-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "default"
+            },
+            "description": "Multi-tenancy context identifier"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Patched"
+          }
+        },
+        "tags": [
+          "Car"
+        ]
       },
       "delete": {
-        "tags": [
-          "Article"
-        ],
-        "summary": "Delete Article",
+        "summary": "Delete Car ",
         "parameters": [
           {
             "name": "X-Tenant-ID",
@@ -224,15 +252,15 @@
           "204": {
             "description": "No Content"
           }
-        }
+        },
+        "tags": [
+          "Car"
+        ]
       }
     },
-    "/articles/bulk": {
+    "/api/cars/bulk": {
       "post": {
-        "tags": [
-          "Article"
-        ],
-        "summary": "Bulk Create Articles",
+        "summary": "Bulk Create Cars ",
         "parameters": [
           {
             "name": "X-Tenant-ID",
@@ -252,7 +280,7 @@
               "schema": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/Article"
+                  "$ref": "#/components/schemas/Car"
                 }
               }
             }
@@ -260,25 +288,15 @@
         },
         "responses": {
           "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Article"
-                  }
-                }
-              }
-            }
+            "description": "Created"
           }
-        }
+        },
+        "tags": [
+          "Car"
+        ]
       },
       "put": {
-        "tags": [
-          "Article"
-        ],
-        "summary": "Bulk Update Articles",
+        "summary": "Bulk Update Cars ",
         "parameters": [
           {
             "name": "X-Tenant-ID",
@@ -298,7 +316,7 @@
               "schema": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/Article"
+                  "$ref": "#/components/schemas/Car"
                 }
               }
             }
@@ -306,25 +324,15 @@
         },
         "responses": {
           "200": {
-            "description": "Updated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Article"
-                  }
-                }
-              }
-            }
+            "description": "Updated"
           }
-        }
+        },
+        "tags": [
+          "Car"
+        ]
       },
       "patch": {
-        "tags": [
-          "Article"
-        ],
-        "summary": "Bulk Patch Articles",
+        "summary": "Bulk Patch Cars ",
         "parameters": [
           {
             "name": "X-Tenant-ID",
@@ -362,55 +370,15 @@
           "200": {
             "description": "Patched"
           }
-        }
+        },
+        "tags": [
+          "Car"
+        ]
       }
     },
-    "/authors": {
-      "post": {
-        "tags": [
-          "Author"
-        ],
-        "summary": "Create a new Author",
-        "parameters": [
-          {
-            "name": "X-Tenant-ID",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "default": "default"
-            },
-            "description": "Multi-tenancy context identifier"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Author"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Author"
-                }
-              }
-            }
-          }
-        }
-      },
+    "/open/api/cars": {
       "get": {
-        "tags": [
-          "Author"
-        ],
-        "summary": "Get all Authors",
+        "summary": "Get all Cars (Public)",
         "parameters": [
           {
             "name": "X-Tenant-ID",
@@ -455,21 +423,26 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Author"
+                    "$ref": "#/components/schemas/Car"
                   }
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Car (Public)"
+        ],
+        "security": [
+          {
+            "TenantID": []
+          }
+        ]
       }
     },
-    "/authors/{id}": {
+    "/open/api/cars/{id}": {
       "get": {
-        "tags": [
-          "Author"
-        ],
-        "summary": "Get Author by ID",
+        "summary": "Get Car by ID (Public)",
         "parameters": [
           {
             "name": "X-Tenant-ID",
@@ -503,18 +476,23 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Author"
+                  "$ref": "#/components/schemas/Car"
                 }
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Car (Public)"
+        ],
+        "security": [
+          {
+            "TenantID": []
+          }
+        ]
       },
       "put": {
-        "tags": [
-          "Author"
-        ],
-        "summary": "Update Author",
+        "summary": "Update Car (Public)",
         "parameters": [
           {
             "name": "X-Tenant-ID",
@@ -541,143 +519,102 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Author"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Author"
-        ],
-        "summary": "Delete Author",
-        "parameters": [
-          {
-            "name": "X-Tenant-ID",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "default": "default"
-            },
-            "description": "Multi-tenancy context identifier"
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "No Content"
-          }
-        }
-      }
-    },
-    "/authors/bulk": {
-      "post": {
-        "tags": [
-          "Author"
-        ],
-        "summary": "Bulk Create Authors",
-        "parameters": [
-          {
-            "name": "X-Tenant-ID",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "default": "default"
-            },
-            "description": "Multi-tenancy context identifier"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/Author"
+                  "$ref": "#/components/schemas/Car"
                 }
               }
             }
           }
         },
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Author"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
         "tags": [
-          "Author"
+          "Car (Public)"
         ],
-        "summary": "Bulk Update Authors",
-        "parameters": [
+        "security": [
           {
-            "name": "X-Tenant-ID",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "default": "default"
-            },
-            "description": "Multi-tenancy context identifier"
+            "TenantID": []
           }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/Author"
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Updated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Author"
-                  }
-                }
-              }
-            }
-          }
-        }
+        ]
       },
       "patch": {
-        "tags": [
-          "Author"
+        "summary": "Patch Car (Public)",
+        "parameters": [
+          {
+            "name": "X-Tenant-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "default"
+            },
+            "description": "Multi-tenancy context identifier"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
         ],
-        "summary": "Bulk Patch Authors",
+        "responses": {
+          "200": {
+            "description": "Patched"
+          }
+        },
+        "tags": [
+          "Car (Public)"
+        ],
+        "security": [
+          {
+            "TenantID": []
+          }
+        ]
+      }
+    },
+    "/open/api/cars/bulk": {
+      "put": {
+        "summary": "Bulk Update Cars (Public)",
+        "parameters": [
+          {
+            "name": "X-Tenant-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "default"
+            },
+            "description": "Multi-tenancy context identifier"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Car"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        },
+        "tags": [
+          "Car (Public)"
+        ],
+        "security": [
+          {
+            "TenantID": []
+          }
+        ]
+      },
+      "patch": {
+        "summary": "Bulk Patch Cars (Public)",
         "parameters": [
           {
             "name": "X-Tenant-ID",
@@ -715,7 +652,495 @@
           "200": {
             "description": "Patched"
           }
-        }
+        },
+        "tags": [
+          "Car (Public)"
+        ],
+        "security": [
+          {
+            "TenantID": []
+          }
+        ]
+      }
+    },
+    "/api/persons": {
+      "post": {
+        "summary": "Create a new Person ",
+        "parameters": [
+          {
+            "name": "X-Tenant-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "default"
+            },
+            "description": "Multi-tenancy context identifier"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Person"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Person"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Person"
+        ]
+      },
+      "get": {
+        "summary": "Get all Persons ",
+        "parameters": [
+          {
+            "name": "X-Tenant-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "default"
+            },
+            "description": "Multi-tenancy context identifier"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Zero-based page index"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Records per page"
+          },
+          {
+            "name": "eager",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "If true, performs SQL Join to fetch relations"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Person"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Person"
+        ]
+      }
+    },
+    "/api/persons/{id}": {
+      "get": {
+        "summary": "Get Person by ID ",
+        "parameters": [
+          {
+            "name": "X-Tenant-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "default"
+            },
+            "description": "Multi-tenancy context identifier"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "eager",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Person"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Person"
+        ]
+      },
+      "put": {
+        "summary": "Update Person ",
+        "parameters": [
+          {
+            "name": "X-Tenant-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "default"
+            },
+            "description": "Multi-tenancy context identifier"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Person"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Person"
+        ]
+      },
+      "patch": {
+        "summary": "Patch Person ",
+        "parameters": [
+          {
+            "name": "X-Tenant-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "default"
+            },
+            "description": "Multi-tenancy context identifier"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Patched"
+          }
+        },
+        "tags": [
+          "Person"
+        ]
+      },
+      "delete": {
+        "summary": "Delete Person ",
+        "parameters": [
+          {
+            "name": "X-Tenant-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "default"
+            },
+            "description": "Multi-tenancy context identifier"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "Person"
+        ]
+      }
+    },
+    "/api/persons/bulk": {
+      "post": {
+        "summary": "Bulk Create Persons ",
+        "parameters": [
+          {
+            "name": "X-Tenant-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "default"
+            },
+            "description": "Multi-tenancy context identifier"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Person"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "Person"
+        ]
+      },
+      "put": {
+        "summary": "Bulk Update Persons ",
+        "parameters": [
+          {
+            "name": "X-Tenant-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "default"
+            },
+            "description": "Multi-tenancy context identifier"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Person"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        },
+        "tags": [
+          "Person"
+        ]
+      },
+      "patch": {
+        "summary": "Bulk Patch Persons ",
+        "parameters": [
+          {
+            "name": "X-Tenant-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "default"
+            },
+            "description": "Multi-tenancy context identifier"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "changes": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Patched"
+          }
+        },
+        "tags": [
+          "Person"
+        ]
+      }
+    },
+    "/open/api/persons": {
+      "get": {
+        "summary": "Get all Persons (Public)",
+        "parameters": [
+          {
+            "name": "X-Tenant-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "default"
+            },
+            "description": "Multi-tenancy context identifier"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Zero-based page index"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Records per page"
+          },
+          {
+            "name": "eager",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "If true, performs SQL Join to fetch relations"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Person"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Person (Public)"
+        ],
+        "security": [
+          {
+            "TenantID": []
+          }
+        ]
+      }
+    },
+    "/open/api/persons/{id}": {
+      "get": {
+        "summary": "Get Person by ID (Public)",
+        "parameters": [
+          {
+            "name": "X-Tenant-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "default"
+            },
+            "description": "Multi-tenancy context identifier"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "eager",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Person"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Person (Public)"
+        ],
+        "security": [
+          {
+            "TenantID": []
+          }
+        ]
       }
     },
     "/rpc/{table}": {
@@ -824,7 +1249,7 @@
         "type": "apiKey",
         "in": "header",
         "name": "X-Tenant-ID",
-        "description": "The unique identifier for the tenant dashboard context"
+        "description": "The unique identifier for the tenant context"
       }
     },
     "schemas": {
@@ -836,23 +1261,29 @@
           }
         }
       },
-      "Article": {
+      "Car": {
         "type": "object",
         "properties": {
           "id": {
             "type": "integer"
           },
-          "title": {
+          "name": {
             "type": "string"
           },
-          "content": {
+          "model": {
             "type": "string"
           },
-          "status": {
+          "year": {
+            "type": "integer"
+          },
+          "price": {
+            "type": "number"
+          },
+          "color": {
             "type": "string"
           },
-          "publishedDate": {
-            "type": "string"
+          "features": {
+            "type": "object"
           },
           "createdAt": {
             "type": "string",
@@ -864,14 +1295,26 @@
           }
         }
       },
-      "Author": {
+      "Person": {
         "type": "object",
         "properties": {
           "id": {
             "type": "integer"
           },
-          "name": {
+          "firstName": {
             "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "age": {
+            "type": "integer"
+          },
+          "preferences": {
+            "type": "object"
           },
           "createdAt": {
             "type": "string",

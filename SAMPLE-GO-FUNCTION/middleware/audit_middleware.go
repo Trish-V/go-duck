@@ -28,11 +28,15 @@ func AuditMiddleware(db *gorm.DB) gin.HandlerFunc {
 		if method == http.MethodPost { action = "CREATE" }
 		if method == http.MethodDelete { action = "DELETE" }
 
-		// Mock user and IP
-		userEmail := c.GetHeader("User-Email")
-		if userEmail == "" { userEmail = "anonymous" }
+		// Extract Identity from context (set by JWTMiddleware)
+		userEmail, _ := c.Get("UserEmail")
+		emailStr := "anonymous"
+		if email, ok := userEmail.(string); ok { emailStr = email }
 		
-		keycloakId := c.GetHeader("X-Keycloak-Id")
+		keycloakId, _ := c.Get("KeycloakID")
+		kidStr := ""
+		if kid, ok := keycloakId.(string); ok { kidStr = kid }
+		
 		clientIP := c.ClientIP()
 
 		// Call next handlers
@@ -43,8 +47,8 @@ func AuditMiddleware(db *gorm.DB) gin.HandlerFunc {
 		auditEntry := models.AuditLog{
 			EntityName: path,
 			Action:     action,
-			ModifiedBy: userEmail,
-			KeycloakID: keycloakId,
+			ModifiedBy: emailStr,
+			KeycloakID: kidStr,
 			ModifiedAt: time.Now(),
 			ClientIP:   clientIP,
 		}

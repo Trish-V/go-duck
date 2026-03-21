@@ -27,8 +27,8 @@ func NewGRPCServer(conf *config.Config, repo *repository.Repository) *grpc.Serve
 	srv := grpc.NewServer(opts...)
     
     // Register Services
-    v1.RegisterArticleServiceServer(srv, service.NewArticleService(repo))
-    v1.RegisterAuthorServiceServer(srv, service.NewAuthorService(repo))
+    v1.RegisterCarServiceServer(srv, service.NewCarService(repo))
+    v1.RegisterPersonServiceServer(srv, service.NewPersonService(repo))
     // go-duck-needle-add-grpc-service
 
 	return srv

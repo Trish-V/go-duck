@@ -372,6 +372,18 @@ program
         const config = await loadConfig(path.resolve(process.cwd(), configPath));
         console.log(chalk.green(`✅ Config loaded for app: ${config.name}`));
 
+        // Cleanup legacy files if they exist in the root
+        const legacyFiles = ['Dockerfile', 'docker-compose.yml'];
+        const legacyDirs = ['k8s', 'realm-config'];
+        for (const f of legacyFiles) {
+            const p = path.join(absoluteOutputDir, f);
+            if (await fs.pathExists(p)) await fs.remove(p);
+        }
+        for (const d of legacyDirs) {
+            const p = path.join(absoluteOutputDir, d);
+            if (await fs.pathExists(p)) await fs.remove(p);
+        }
+
         await generateConfigLoader(absoluteOutputDir);
         await generateLoggerCode(config, absoluteOutputDir);
         await generateMQTTCode(config, absoluteOutputDir);
@@ -410,6 +422,37 @@ program
             await fs.writeFile(path.join(absoluteOutputDir, 'main.go'), mainTemplate({ app_name: config.name, entities, openEntities }));
             console.log(chalk.green('✅ main.go entry point created!'));
         }
+
+        // 10. Generate go.mod
+        const goModContent = `module ${config.name}
+
+go 1.22
+
+require (
+	github.com/gin-gonic/gin v1.9.1
+	github.com/go-kratos/kratos/v2 v2.7.2
+	github.com/google/uuid v1.6.0
+	github.com/spf13/viper v1.18.2
+	go.opentelemetry.io/otel v1.24.0
+	go.opentelemetry.io/otel/trace v1.24.0
+	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.49.0
+	google.golang.org/grpc v1.62.0
+	gorm.io/datatypes v1.2.0
+	gorm.io/driver/postgres v1.5.7
+	gorm.io/gorm v1.25.7
+	gorm.io/plugin/opentelemetry v0.1.5
+	github.com/golang-jwt/jwt/v4 v4.5.0
+	github.com/eclipse/paho.mqtt.golang v1.4.3
+	github.com/sony/gobreaker v0.5.0
+	github.com/redis/go-redis/v9 v9.5.1
+	github.com/gorilla/websocket v1.5.1
+	github.com/99designs/gqlgen v0.17.44
+	github.com/vektah/gqlparser/v2 v2.5.11
+)
+`;
+        await fs.writeFile(path.join(absoluteOutputDir, 'go.mod'), goModContent);
+        console.log(chalk.green('✅ go.mod file created!'));
+
         console.log(chalk.bold.magenta('\n✨ Project created successfully!'));
     });
 
@@ -422,6 +465,19 @@ program
         console.log(chalk.blue(`📥 Importing GDL from ${file}...`));
 
         const config = await loadConfig(path.resolve(process.cwd(), '../CONFIG/config.yaml'));
+
+        // Cleanup legacy files if they exist in the root
+        const legacyFiles = ['Dockerfile', 'docker-compose.yml'];
+        const legacyDirs = ['k8s', 'realm-config'];
+        for (const f of legacyFiles) {
+            const p = path.join(absoluteOutputDir, f);
+            if (await fs.pathExists(p)) await fs.remove(p);
+        }
+        for (const d of legacyDirs) {
+            const p = path.join(absoluteOutputDir, d);
+            if (await fs.pathExists(p)) await fs.remove(p);
+        }
+
         await generateConfigLoader(absoluteOutputDir);
         await generateLoggerCode(config, absoluteOutputDir);
         await generateMQTTCode(config, absoluteOutputDir);
