@@ -226,8 +226,8 @@ func CreateDatabaseAndMigrate(masterDB *gorm.DB) gin.HandlerFunc {
 	await fs.ensureDir(path.join(outputDir, 'middleware'));
 	await fs.ensureDir(path.join(outputDir, 'management'));
 
-	await fs.writeFile(middlewarePath, multitenancyTemplate);
-	await fs.writeFile(dbApiPath, dbApiTemplate.replace('{{app_name}}', config.name));
+	await fs.writeFile(middlewarePath, multitenancyTemplate.replace(/{{app_name}}/g, config.name));
+	await fs.writeFile(dbApiPath, dbApiTemplate.replace(/{{app_name}}/g, config.name));
 
 	console.log(chalk.gray('  Generated Multitenancy Middleware & Management API'));
 };

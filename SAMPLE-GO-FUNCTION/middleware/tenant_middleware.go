@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"{{app_name}}/config"
+	"go-duck/config"
 )
 
 // TenantDBManager handles dynamic connection pooling for all tenants
