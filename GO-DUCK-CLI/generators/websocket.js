@@ -18,8 +18,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"sync"
-	"{{app_name}}/controllers"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"

@@ -1,7 +1,6 @@
 package graph
 
 import (
-"encoding/json"
 "net/http"
 "go-duck/models"
 
@@ -13,8 +12,8 @@ import (
 // In a production app, we would use a more robust engine (like gqlgen).
 func HandleGraphQLRequest(db *gorm.DB, c *gin.Context) {
 var input struct {
-Query string \`json:"query"\`
-Variables map[string]interface{} \`json:"variables"\`
+Query string `json:"query"`
+Variables map[string]interface{} `json:"variables"`
 }
 
 if err := c.BindJSON(&input); err != nil {

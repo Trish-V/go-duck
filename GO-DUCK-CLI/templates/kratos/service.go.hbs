@@ -2,6 +2,9 @@ package service
 
 import (
 	"context"
+	{{#if (hasInstant fields)}}
+	"time"
+	{{/if}}
 	pb "{{projectName}}/api/v1"
 	"{{projectName}}/internal/repository"
 	"{{projectName}}/models"
@@ -23,7 +26,15 @@ func New{{capitalize name}}Service(repo *repository.Repository) *{{capitalize na
 func (s *{{capitalize name}}Service) Create{{capitalize name}}(ctx context.Context, req *pb.Create{{capitalize name}}Request) (*pb.{{capitalize name}}Reply, error) {
 	entity := &models.{{capitalize name}}{
 		{{#each fields}}
-		{{capitalize name}}: {{#if (isJson type)}}datatypes.JSON(req.{{capitalize name}}){{else}}{{#if (toGoCast type)}}{{toGoCast type}}(req.{{capitalize name}}){{else}}req.{{capitalize name}}{{/if}}{{/if}},
+		{{#if (eq type "LocalDate")}}
+		{{capitalize name}}: parseDate(req.{{capitalize name}}),
+		{{else if (eq type "Instant")}}
+		{{capitalize name}}: parseInstant(req.{{capitalize name}}),
+		{{else if (isJson type)}}
+		{{capitalize name}}: datatypes.JSON(req.{{capitalize name}}),
+		{{else}}
+		{{capitalize name}}: {{#if (toGoCast type)}}{{toGoCast type}}(req.{{capitalize name}}){{else}}req.{{capitalize name}}{{/if}},
+		{{/if}}
 		{{/each}}
 	}
 	if err := s.repo.DB.WithContext(ctx).Create(entity).Error; err != nil {
@@ -51,7 +62,15 @@ func (s *{{capitalize name}}Service) Update{{capitalize name}}(ctx context.Conte
 	}
 	
 	{{#each fields}}
-	entity.{{capitalize name}} = {{#if (isJson type)}}datatypes.JSON(req.{{capitalize name}}){{else}}{{#if (toGoCast type)}}{{toGoCast type}}(req.{{capitalize name}}){{else}}req.{{capitalize name}}{{/if}}{{/if}}
+	{{#if (eq type "LocalDate")}}
+	entity.{{capitalize name}} = parseDate(req.{{capitalize name}})
+	{{else if (eq type "Instant")}}
+	entity.{{capitalize name}} = parseInstant(req.{{capitalize name}})
+	{{else if (isJson type)}}
+	entity.{{capitalize name}} = datatypes.JSON(req.{{capitalize name}})
+	{{else}}
+	entity.{{capitalize name}} = {{#if (toGoCast type)}}{{toGoCast type}}(req.{{capitalize name}}){{else}}req.{{capitalize name}}{{/if}}
+	{{/if}}
 	{{/each}}
 
 	if err := s.repo.DB.WithContext(ctx).Save(&entity).Error; err != nil {
@@ -96,9 +115,22 @@ func map{{capitalize name}}ToPb(m *models.{{capitalize name}}) *pb.{{capitalize 
 	return &pb.{{capitalize name}}{
 		Id: uint64(m.ID),
 		{{#each fields}}
-		{{capitalize name}}: {{#if (isJson type)}}string(m.{{capitalize name}}){{else}}{{#if (toProtoCast type)}}{{toProtoCast type}}(m.{{capitalize name}}){{else}}m.{{capitalize name}}{{/if}}{{/if}},
+		{{#if (eq type "LocalDate")}}
+		{{capitalize name}}: m.{{capitalize name}}.Format("2006-01-02"),
+		{{else if (eq type "Instant")}}
+		{{capitalize name}}: m.{{capitalize name}}.Format(time.RFC3339),
+		{{else if (isJson type)}}
+		{{capitalize name}}: string(m.{{capitalize name}}),
+		{{else}}
+		{{capitalize name}}: {{#if (toProtoCast type)}}{{toProtoCast type}}(m.{{capitalize name}}){{else}}m.{{capitalize name}}{{/if}},
+		{{/if}}
 		{{/each}}
+		{{#if (eq annotation "@Audited")}}
+		CreatedAt: timestamppb.New(m.CreatedDate),
+		UpdatedAt: timestamppb.New(m.LastModifiedDate),
+		{{else}}
 		CreatedAt: timestamppb.New(m.CreatedAt),
 		UpdatedAt: timestamppb.New(m.UpdatedAt),
+		{{/if}}
 	}
 }

@@ -55,6 +55,8 @@ export const generateKratosCode = async (entities, projectRootDir, projectName, 
             'Float': 'float64',
             'BigDecimal': 'float64',
             'Boolean': 'bool',
+            'LocalDate': '', // Will handle via time.Parse
+            'Instant': '',   // Will handle via time.Parse
             'JSON': 'datatypes.JSON',
             'JSONB': 'datatypes.JSON'
         };
@@ -69,9 +71,11 @@ export const generateKratosCode = async (entities, projectRootDir, projectName, 
             'Integer': 'int32',
             'Long': 'int64',
             'Float': 'float32',
-            'BigDecimal': 'double',
+            'BigDecimal': 'float64', // Go uses float64 for bigdecimal usually
             'JSON': 'string',
-            'JSONB': 'string'
+            'JSONB': 'string',
+            'LocalDate': 'FormatDate', // Helper function
+            'Instant': 'FormatInstant' // Helper function
         };
         return map[type] || '';
     });
@@ -87,12 +91,23 @@ export const generateKratosCode = async (entities, projectRootDir, projectName, 
 
     Handlebars.registerHelper('isJson', (type) => type === 'JSON' || type === 'JSONB');
 
+    Handlebars.registerHelper('hasDate', (fields) => {
+        if (!fields || !Array.isArray(fields)) return false;
+        return fields.some(f => f.type === 'LocalDate' || f.type === 'Instant');
+    });
+
+    Handlebars.registerHelper('hasInstant', (fields) => {
+        if (!fields || !Array.isArray(fields)) return false;
+        return fields.some(f => f.type === 'Instant');
+    });
+
     for (const entity of entities) {
         const context = {
             name: entity.name,
             capitalize: (s) => s.charAt(0).toUpperCase() + s.slice(1),
             lower: (s) => s.toLowerCase(),
             fields: entity.fields,
+            annotation: entity.annotation, // Need this to choose timestamp fields
             projectName,
             enums
         };
@@ -109,6 +124,23 @@ export const generateKratosCode = async (entities, projectRootDir, projectName, 
     // 3. Generate Auth Middleware & gRPC Server with Kratos
     await generateKratosServer(serverDir, projectName, entities);
 
+    // 4. Generate utils.go for shared helpers
+    const utilsContent = `package service
+
+import "time"
+
+func parseDate(s string) time.Time {
+	t, _ := time.Parse("2006-01-02", s)
+	return t
+}
+
+func parseInstant(s string) time.Time {
+	t, _ := time.Parse(time.RFC3339, s)
+	return t
+}
+`;
+    await fs.writeFile(path.join(serviceDir, 'utils.go'), utilsContent);
+
     console.log(chalk.green('✅ Kratos gRPC code generated successfully!'));
 };
 
@@ -116,11 +148,10 @@ const generateKratosServer = async (serverDir, projectName, entities) => {
     const grpcServerTemplate = `package server
 
 import (
-	"context"
-	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
+	kjwt "github.com/go-kratos/kratos/v2/middleware/auth/jwt"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
     v1 "{{projectName}}/api/v1"
     "{{projectName}}/internal/service"
     "{{projectName}}/internal/repository"
@@ -131,7 +162,7 @@ func NewGRPCServer(conf *config.Config, repo *repository.Repository) *grpc.Serve
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
 			recovery.Recovery(),
-			jwt.Server(func(token *jwt.Token) (interface{}, error) {
+			kjwt.Server(func(token *jwt.Token) (interface{}, error) {
 				return []byte(conf.GoDuck.Security.KeycloakSecret), nil
 			}),
 		),

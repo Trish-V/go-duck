@@ -11,6 +11,7 @@ import path from 'path';
 import yaml from 'js-yaml';
 import Handlebars from 'handlebars';
 import chalk from 'chalk';
+import { execSync } from 'child_process';
 import { parseGDL } from './parser/gdl.js';
 import { generateMultitenancy } from './generators/multitenancy.js';
 import { generateLiquibaseChangelogs } from './generators/migrations.js';
@@ -65,8 +66,6 @@ type AuditLog struct {
 package middleware
 
 import (
-	"bytes"
-	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -206,6 +205,14 @@ Handlebars.registerHelper('gql_type', (type, options) => {
         'JSONB': 'String'
     };
     return types[type] || 'String';
+});
+
+Handlebars.registerHelper('isAnyOperationOpen', (entityName, openEntities) => {
+    if (!openEntities || !Array.isArray(openEntities)) return false;
+    const wildcard = openEntities.find(e => e.name === '*');
+    if (wildcard) return true;
+    const entry = openEntities.find(e => e.name.toLowerCase() === entityName.toLowerCase());
+    return !!entry;
 });
 
 Handlebars.registerHelper('isOpen', (entityName, openEntities, action) => {
@@ -452,19 +459,20 @@ program
 go 1.22
 
 require (
-	github.com/gin-gonic/gin v1.9.1
-	github.com/go-kratos/kratos/v2 v2.7.2
+	github.com/gin-gonic/gin v1.10.0
+	github.com/go-kratos/kratos/v2 v2.7.3
 	github.com/google/uuid v1.6.0
-	github.com/spf13/viper v1.18.2
-	go.opentelemetry.io/otel v1.24.0
-	go.opentelemetry.io/otel/trace v1.24.0
-	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.49.0
-	google.golang.org/grpc v1.62.0
+	github.com/spf13/viper v1.19.0
+	go.opentelemetry.io/otel v1.26.0
+	go.opentelemetry.io/otel/trace v1.26.0
+	go.opentelemetry.io/otel/sdk v1.26.0
+	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.51.0
+	google.golang.org/grpc v1.64.0
 	gorm.io/datatypes v1.2.0
 	gorm.io/driver/postgres v1.5.7
-	gorm.io/gorm v1.25.7
+	gorm.io/gorm v1.25.10
 	gorm.io/plugin/opentelemetry v0.1.5
-	github.com/golang-jwt/jwt/v4 v4.5.0
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/eclipse/paho.mqtt.golang v1.4.3
 	github.com/sony/gobreaker v0.5.0
 	github.com/redis/go-redis/v9 v9.5.1
@@ -475,6 +483,15 @@ require (
 `;
         await fs.writeFile(path.join(absoluteOutputDir, 'go.mod'), goModContent);
         console.log(chalk.green('✅ go.mod file created!'));
+
+        // Post-generation: Run go mod tidy
+        try {
+            console.log(chalk.blue('Cleaning up Go modules (go mod tidy)...'));
+            execSync('go mod tidy', { cwd: absoluteOutputDir, stdio: 'inherit' });
+            console.log(chalk.green('✅ Go modules tidied!'));
+        } catch (error) {
+            console.warn(chalk.yellow('⚠️ Could not run go mod tidy. Please run it manually.'));
+        }
 
         console.log(chalk.bold.magenta('\n✨ Project created successfully!'));
     });
@@ -536,6 +553,16 @@ program
             await fs.writeFile(path.join(absoluteOutputDir, 'main.go'), mainTemplate({ app_name: config.name, entities, openEntities }));
             console.log(chalk.green('✅ Updated main.go to register new entity routes.'));
         }
+
+        // Run go mod tidy after import as well
+        try {
+            console.log(chalk.blue('Cleaning up Go modules (go mod tidy)...'));
+            execSync('go mod tidy', { cwd: absoluteOutputDir, stdio: 'inherit' });
+            console.log(chalk.green('✅ Go modules tidied!'));
+        } catch (error) {
+            console.warn(chalk.yellow('⚠️ Could not run go mod tidy. Please run it manually.'));
+        }
+
         console.log(chalk.bold.magenta('\n✨ GDL Import Completed with Incremental Migrations! ✨'));
     });
 

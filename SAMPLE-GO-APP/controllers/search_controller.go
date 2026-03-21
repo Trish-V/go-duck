@@ -44,10 +44,10 @@ func (sc *SearchController) GenericSearch(c *gin.Context) {
 				path = path[1:]
 			}
 			// Wrap column in quotes and path in single quotes for Postgres JSONB safety
-			processedKey = fmt.Sprintf(""%s"%s'%s'", column, operator, path)
+			processedKey = fmt.Sprintf("\"%s\"%s'%s'", column, operator, path)
 		} else {
 			// Standard column: Wrap in quotes for safety
-			processedKey = fmt.Sprintf(""%s"", key)
+			processedKey = fmt.Sprintf("\"%s\"", key)
 		}
 
 		for _, val := range values {

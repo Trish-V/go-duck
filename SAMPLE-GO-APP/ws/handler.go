@@ -10,8 +10,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"sync"
-	"go-duck/controllers"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"

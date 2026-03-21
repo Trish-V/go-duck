@@ -20,7 +20,7 @@ func NewAuthorService(repo *repository.Repository) *AuthorService {
 func (s *AuthorService) CreateAuthor(ctx context.Context, req *pb.CreateAuthorRequest) (*pb.AuthorReply, error) {
 	entity := &models.Author{
 		Name: req.Name,
-	}
+			}
 	if err := s.repo.DB.WithContext(ctx).Create(entity).Error; err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (s *AuthorService) UpdateAuthor(ctx context.Context, req *pb.UpdateAuthorRe
 	}
 	
 	entity.Name = req.Name
-
+	
 	if err := s.repo.DB.WithContext(ctx).Save(&entity).Error; err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func mapAuthorToPb(m *models.Author) *pb.Author {
 	return &pb.Author{
 		Id: uint64(m.ID),
 		Name: m.Name,
-		CreatedAt: timestamppb.New(m.CreatedAt),
+				CreatedAt: timestamppb.New(m.CreatedAt),
 		UpdatedAt: timestamppb.New(m.UpdatedAt),
 	}
 }

@@ -1,11 +1,10 @@
 package server
 
 import (
-	"context"
-	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
+	kjwt "github.com/go-kratos/kratos/v2/middleware/auth/jwt"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
     v1 "go-duck/api/v1"
     "go-duck/internal/service"
     "go-duck/internal/repository"
@@ -16,7 +15,7 @@ func NewGRPCServer(conf *config.Config, repo *repository.Repository) *grpc.Serve
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
 			recovery.Recovery(),
-			jwt.Server(func(token *jwt.Token) (interface{}, error) {
+			kjwt.Server(func(token *jwt.Token) (interface{}, error) {
 				return []byte(conf.GoDuck.Security.KeycloakSecret), nil
 			}),
 		),

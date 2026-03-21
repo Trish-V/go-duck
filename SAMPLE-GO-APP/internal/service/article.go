@@ -20,9 +20,9 @@ func NewArticleService(repo *repository.Repository) *ArticleService {
 func (s *ArticleService) CreateArticle(ctx context.Context, req *pb.CreateArticleRequest) (*pb.ArticleReply, error) {
 	entity := &models.Article{
 		Title: req.Title,
-		Content: req.Content,
-		Status: models.ArticleStatus(req.Status),
-		PublishedDate: req.PublishedDate,
+				Content: req.Content,
+				Status: models.ArticleStatus(req.Status),
+				PublishedDate: parseDate(req.PublishedDate),
 	}
 	if err := s.repo.DB.WithContext(ctx).Create(entity).Error; err != nil {
 		return nil, err
@@ -49,9 +49,9 @@ func (s *ArticleService) UpdateArticle(ctx context.Context, req *pb.UpdateArticl
 	}
 	
 	entity.Title = req.Title
-	entity.Content = req.Content
-	entity.Status = models.ArticleStatus(req.Status)
-	entity.PublishedDate = req.PublishedDate
+		entity.Content = req.Content
+		entity.Status = models.ArticleStatus(req.Status)
+		entity.PublishedDate = parseDate(req.PublishedDate)
 
 	if err := s.repo.DB.WithContext(ctx).Save(&entity).Error; err != nil {
 		return nil, err
@@ -95,10 +95,10 @@ func mapArticleToPb(m *models.Article) *pb.Article {
 	return &pb.Article{
 		Id: uint64(m.ID),
 		Title: m.Title,
-		Content: m.Content,
-		Status: string(m.Status),
-		PublishedDate: m.PublishedDate,
-		CreatedAt: timestamppb.New(m.CreatedAt),
-		UpdatedAt: timestamppb.New(m.UpdatedAt),
+				Content: m.Content,
+				Status: string(m.Status),
+				PublishedDate: m.PublishedDate.Format("2006-01-02"),
+		CreatedAt: timestamppb.New(m.CreatedDate),
+		UpdatedAt: timestamppb.New(m.LastModifiedDate),
 	}
 }

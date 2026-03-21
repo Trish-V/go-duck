@@ -88,9 +88,3 @@ message ListArticleReply {
   repeated Article results = 1;
   int64 total = 2;
 }
-enum ArticleStatus {
-  ArticleStatus_UNSPECIFIED = 0;
-  ArticleStatus_DRAFT = 1;
-  ArticleStatus_PUBLISHED = 2;
-  ArticleStatus_ARCHIVED = 3;
-}

@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 
 	"go-duck/config"
 	"go.opentelemetry.io/otel"

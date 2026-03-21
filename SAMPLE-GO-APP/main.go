@@ -24,7 +24,6 @@ import (
 "go-duck/internal/telemetry"
 "go-duck/internal/repository"
 "go-duck/internal/server"
-k_grpc "github.com/go-kratos/kratos/v2/transport/grpc"
 // go-duck-needle-add-import
 )
 
@@ -103,35 +102,12 @@ c.JSON(http.StatusOK, gin.H{"status": "UP"})
 // Swagger Docs & UI
 r.StaticFile("/swagger.json", "./docs/swagger.json")
 r.GET("/swagger", func(c *gin.Context) {
-c.Header("Content-Type", "text/html; charset=utf-8")
-c.String(http.StatusOK, \`
+c.String(http.StatusOK, `
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <title>Swagger UI</title>
-    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@3/swagger-ui.css">
-</head>
-
-<body>
-    <div id="swagger-ui"></div>
-    <script src="https://unpkg.com/swagger-ui-dist@3/swagger-ui-bundle.js"> </script>
-    <script>
-        window.onload = function () {
-            window.ui = SwaggerUIBundle({
-                url: "/swagger.json",
-                dom_id: '#swagger-ui',
-                deepLinking: true,
-                presets: [SwaggerUIBundle.presets.apis],
-                layout: "BaseLayout"
-            });
-        };
-    </script>
-</body>
-
+...
 </html>
-\`)
+`)
 })
 
 // Management APIs (Run-time DB creation)
@@ -159,9 +135,7 @@ if appConfig.GoDuck.Multitenancy.Enabled {
     openApi.GET("/persons", personOpenCtrl.GetAll)
     openApi.GET("/persons/:id", personOpenCtrl.GetByID)
     // Article Public Routes
-    articleOpenCtrl := controllers.ArticleController{DB: masterDB, Config: appConfig}
     // Author Public Routes
-    authorOpenCtrl := controllers.AuthorController{DB: masterDB, Config: appConfig}
 }
 
 // 9. Secured Application APIs

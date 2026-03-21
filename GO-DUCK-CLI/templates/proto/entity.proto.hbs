@@ -85,11 +85,3 @@ message List{{capitalize name}}Reply {
   repeated {{capitalize name}} results = 1;
   int64 total = 2;
 }
-{{#each enums}}
-enum {{capitalize name}} {
-  {{capitalize name}}_UNSPECIFIED = 0;
-{{#each values}}
-  {{capitalize ../name}}_{{this}} = {{add @index 1}};
-{{/each}}
-}
-{{/each}}

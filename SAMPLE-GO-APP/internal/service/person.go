@@ -21,10 +21,10 @@ func NewPersonService(repo *repository.Repository) *PersonService {
 func (s *PersonService) CreatePerson(ctx context.Context, req *pb.CreatePersonRequest) (*pb.PersonReply, error) {
 	entity := &models.Person{
 		FirstName: req.FirstName,
-		LastName: req.LastName,
-		Email: req.Email,
-		Age: int(req.Age),
-		Preferences: datatypes.JSON(req.Preferences),
+				LastName: req.LastName,
+				Email: req.Email,
+				Age: int(req.Age),
+				Preferences: datatypes.JSON(req.Preferences),
 	}
 	if err := s.repo.DB.WithContext(ctx).Create(entity).Error; err != nil {
 		return nil, err
@@ -51,10 +51,10 @@ func (s *PersonService) UpdatePerson(ctx context.Context, req *pb.UpdatePersonRe
 	}
 	
 	entity.FirstName = req.FirstName
-	entity.LastName = req.LastName
-	entity.Email = req.Email
-	entity.Age = int(req.Age)
-	entity.Preferences = datatypes.JSON(req.Preferences)
+		entity.LastName = req.LastName
+		entity.Email = req.Email
+		entity.Age = int(req.Age)
+		entity.Preferences = datatypes.JSON(req.Preferences)
 
 	if err := s.repo.DB.WithContext(ctx).Save(&entity).Error; err != nil {
 		return nil, err
@@ -98,10 +98,10 @@ func mapPersonToPb(m *models.Person) *pb.Person {
 	return &pb.Person{
 		Id: uint64(m.ID),
 		FirstName: m.FirstName,
-		LastName: m.LastName,
-		Email: m.Email,
-		Age: int32(m.Age),
-		Preferences: string(m.Preferences),
+				LastName: m.LastName,
+				Email: m.Email,
+				Age: int32(m.Age),
+				Preferences: string(m.Preferences),
 		CreatedAt: timestamppb.New(m.CreatedAt),
 		UpdatedAt: timestamppb.New(m.UpdatedAt),
 	}

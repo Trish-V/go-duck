@@ -21,11 +21,11 @@ func NewCarService(repo *repository.Repository) *CarService {
 func (s *CarService) CreateCar(ctx context.Context, req *pb.CreateCarRequest) (*pb.CarReply, error) {
 	entity := &models.Car{
 		Name: req.Name,
-		Model: req.Model,
-		Year: int(req.Year),
-		Price: float64(req.Price),
-		Color: req.Color,
-		Features: datatypes.JSON(req.Features),
+				Model: req.Model,
+				Year: int(req.Year),
+				Price: float64(req.Price),
+				Color: req.Color,
+				Features: datatypes.JSON(req.Features),
 	}
 	if err := s.repo.DB.WithContext(ctx).Create(entity).Error; err != nil {
 		return nil, err
@@ -52,11 +52,11 @@ func (s *CarService) UpdateCar(ctx context.Context, req *pb.UpdateCarRequest) (*
 	}
 	
 	entity.Name = req.Name
-	entity.Model = req.Model
-	entity.Year = int(req.Year)
-	entity.Price = float64(req.Price)
-	entity.Color = req.Color
-	entity.Features = datatypes.JSON(req.Features)
+		entity.Model = req.Model
+		entity.Year = int(req.Year)
+		entity.Price = float64(req.Price)
+		entity.Color = req.Color
+		entity.Features = datatypes.JSON(req.Features)
 
 	if err := s.repo.DB.WithContext(ctx).Save(&entity).Error; err != nil {
 		return nil, err
@@ -100,12 +100,12 @@ func mapCarToPb(m *models.Car) *pb.Car {
 	return &pb.Car{
 		Id: uint64(m.ID),
 		Name: m.Name,
-		Model: m.Model,
-		Year: int32(m.Year),
-		Price: double(m.Price),
-		Color: m.Color,
-		Features: string(m.Features),
-		CreatedAt: timestamppb.New(m.CreatedAt),
-		UpdatedAt: timestamppb.New(m.UpdatedAt),
+				Model: m.Model,
+				Year: int32(m.Year),
+				Price: float64(m.Price),
+				Color: m.Color,
+				Features: string(m.Features),
+		CreatedAt: timestamppb.New(m.CreatedDate),
+		UpdatedAt: timestamppb.New(m.LastModifiedDate),
 	}
 }

@@ -22,7 +22,6 @@ type AuthorController struct {
 
 // Create handles creating a new Author
 func (ctrl *AuthorController) Create(c *gin.Context) {
-	id := c.Param("id") // Not used for create usually, but keeping consistency with context
 	tenant, _ := c.Get("tenantDB")
 	tenantStr := fmt.Sprintf("%v", tenant)
 	ctx := c.Request.Context()

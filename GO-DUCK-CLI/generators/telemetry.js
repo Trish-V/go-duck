@@ -16,7 +16,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 
 	"{{app_name}}/config"
 	"go.opentelemetry.io/otel"

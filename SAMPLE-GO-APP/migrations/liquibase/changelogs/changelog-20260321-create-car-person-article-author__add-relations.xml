@@ -5,7 +5,7 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
     
-    <changeSet id="car-create-20260321042501" author="go-duck">
+    <changeSet id="car-create-20260321052626" author="go-duck">
         <preConditions onFail="MARK_RAN"><not><tableExists tableName="car"/></not></preConditions>
         <createTable tableName="car">
             
@@ -38,7 +38,7 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="person-create-20260321042501" author="go-duck">
+    <changeSet id="person-create-20260321052626" author="go-duck">
         <preConditions onFail="MARK_RAN"><not><tableExists tableName="person"/></not></preConditions>
         <createTable tableName="person">
             
@@ -65,7 +65,7 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="article-create-20260321042501" author="go-duck">
+    <changeSet id="article-create-20260321052626" author="go-duck">
         <preConditions onFail="MARK_RAN"><not><tableExists tableName="article"/></not></preConditions>
         <createTable tableName="article">
             
@@ -92,7 +92,7 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="author-create-20260321042501" author="go-duck">
+    <changeSet id="author-create-20260321052626" author="go-duck">
         <preConditions onFail="MARK_RAN"><not><tableExists tableName="author"/></not></preConditions>
         <createTable tableName="author">
             
@@ -107,7 +107,7 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="rel-person-car-20260321042501" author="go-duck">
+    <changeSet id="rel-person-car-20260321052626" author="go-duck">
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="car" columnName="owner_id"/>
@@ -120,7 +120,7 @@
         </addColumn>
     </changeSet>
 
-    <changeSet id="idx-idx_car_owner_id-20260321042501" author="go-duck">
+    <changeSet id="idx-idx_car_owner_id-20260321052626" author="go-duck">
         <preConditions onFail="MARK_RAN">
             <not><indexExists indexName="idx_car_owner_id"/></not>
         </preConditions>
@@ -129,7 +129,7 @@
         </createIndex>
     </changeSet>
 
-    <changeSet id="rel-author-article-20260321042501" author="go-duck">
+    <changeSet id="rel-author-article-20260321052626" author="go-duck">
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="article" columnName="author_id"/>
@@ -142,7 +142,7 @@
         </addColumn>
     </changeSet>
 
-    <changeSet id="idx-idx_article_author_id-20260321042501" author="go-duck">
+    <changeSet id="idx-idx_article_author_id-20260321052626" author="go-duck">
         <preConditions onFail="MARK_RAN">
             <not><indexExists indexName="idx_article_author_id"/></not>
         </preConditions>
