@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>go-duck - Audit &amp; Metering</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { 
+                        sans: ['Outfit', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+                    }
+                }
+            }
+        }
+    </script>
+    <script>hljs.highlightAll();</script>
+    <style>
+        .gradient-text { background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Glassmorphism utilities */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .glass-nav {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Sidebar active link styling */
+        .sidebar-link-active {
+            background: linear-gradient(90deg, #eff6ff 0%, #ffffff 100%);
+            border-left: 3px solid #6366f1;
+            color: #4f46e5;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-indigo-300 selection:text-indigo-900 relative overflow-x-hidden min-h-screen">
+    <!-- Ambient Background -->
+    <div class="fixed inset-0 z-[-1] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-50 via-slate-50 to-white pt-16"></div>
+    <div class="fixed top-0 left-0 w-full h-96 bg-gradient-to-b from-indigo-100/40 to-transparent z-[-1]"></div>
+
+    <!-- Navbar -->
+    <nav class="glass-nav shadow-lg fixed w-full z-40 top-0 h-16 flex items-center px-6 transition-all duration-300">
+        <div class="flex items-center w-full max-w-[90rem] mx-auto">
+            <img src="logo.png" alt="GO-DUCK Logo" class="h-9 w-auto mr-4 shadow-sm hover:scale-110 transition-transform duration-300" style="filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.5));">
+            <div class="text-xl font-bold text-white tracking-tight flex items-center">
+                GO-DUCK 
+                <span class="text-indigo-300 text-[10px] font-bold ml-3 px-2.5 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/30 uppercase tracking-widest hidden sm:inline-flex shadow-inner">
+                    Developer Guide
+                </span>
+            </div>
+            <div class="ml-auto hidden md:flex items-center space-x-6 text-sm font-medium text-slate-300">
+                <a href="https://github.com" target="_blank" class="hover:text-white transition-colors flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" /></svg>
+                    GitHub
+                </a>
+                <a href="swagger.json" target="_blank" class="hover:text-white transition-colors">Swagger API</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex max-w-[90rem] mx-auto pt-16 relative">
+        <!-- Sidebar -->
+        <aside class="w-72 fixed h-[calc(100vh-4rem)] overflow-y-auto px-6 py-8 hidden lg:block scroll-smooth z-30">
+            <div class="glass-panel p-5 rounded-3xl shadow-glass h-full overflow-y-auto">
+                <h3 class="font-bold text-slate-400 uppercase text-[10px] tracking-widest mb-4 flex items-center px-1">
+                    <svg class="w-3.5 h-3.5 mr-2 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+                    Table of Contents
+                </h3>
+                <ul class="space-y-1 text-sm font-medium text-slate-600">
+                    <li><a href="index.html" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 hover:bg-indigo-50/80 hover:text-indigo-600 border-left border-transparent">Home & Quick Start</a></li>
+                    
+                    <li class="pt-6 pb-2 px-4"><span class="font-bold text-slate-800 uppercase text-[10px] tracking-widest opacity-70">1. Core Concepts</span></li>
+                    <li><a href="gdl.html" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 hover:bg-indigo-50/80 hover:text-indigo-600 border-left border-transparent">GDL & Framework</a></li>
+                    <li><a href="cli.html" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 hover:bg-indigo-50/80 hover:text-indigo-600 border-left border-transparent">CLI & Code Injection</a></li>
+                    
+                    <li class="pt-6 pb-2 px-4"><span class="font-bold text-slate-800 uppercase text-[10px] tracking-widest opacity-70">2. API Endpoints</span></li>
+                    <li><a href="rest.html" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 hover:bg-indigo-50/80 hover:text-indigo-600 border-left border-transparent">REST & Generic Search</a></li>
+                    <li><a href="graphql.html" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 hover:bg-indigo-50/80 hover:text-indigo-600 border-left border-transparent">GraphQL Integration</a></li>
+                    <li><a href="grpc.html" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 hover:bg-indigo-50/80 hover:text-indigo-600 border-left border-transparent">Secured gRPC (Kratos)</a></li>
+                    
+                    <li class="pt-6 pb-2 px-4"><span class="font-bold text-slate-800 uppercase text-[10px] tracking-widest opacity-70">3. Real-Time & Audit</span></li>
+                    <li><a href="realtime.html" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 hover:bg-indigo-50/80 hover:text-indigo-600 border-left border-transparent">WebSockets & MQTT</a></li>
+                    <li><a href="audit.html" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 sidebar-link-active shadow-sm">Audit & Metering</a></li>
+                    
+                    <li class="pt-6 pb-2 px-4"><span class="font-bold text-slate-800 uppercase text-[10px] tracking-widest opacity-70">4. Infrastructure</span></li>
+                    <li><a href="security.html" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 hover:bg-indigo-50/80 hover:text-indigo-600 border-left border-transparent">Security & Resilience</a></li>
+                    <li><a href="observability.html" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 hover:bg-indigo-50/80 hover:text-indigo-600 border-left border-transparent">Observability</a></li>
+                    
+                    <li class="pt-6 pb-2 px-4"><span class="font-bold text-slate-800 uppercase text-[10px] tracking-widest opacity-70">5. Ecosystem & Integrations</span></li>
+                    <li><a href="datadog.html" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 hover:bg-indigo-50/80 hover:text-indigo-600 border-left border-transparent">Datadog Monitoring</a></li>
+                    <li><a href="mosquitto.html" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 hover:bg-indigo-50/80 hover:text-indigo-600 border-left border-transparent">Mosquitto MQTT</a></li>
+                    <li><a href="redis.html" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 hover:bg-indigo-50/80 hover:text-indigo-600 border-left border-transparent">Redis Caching</a></li>
+                    <li><a href="otel.html" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 hover:bg-indigo-50/80 hover:text-indigo-600 border-left border-transparent">OpenTelemetry & Jaeger</a></li>
+                    <li><a href="keycloak.html" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 hover:bg-indigo-50/80 hover:text-indigo-600 border-left border-transparent">Keycloak Identity</a></li>
+                    
+                    <li class="pt-6 pb-2 px-4"><span class="font-bold text-slate-800 uppercase text-[10px] tracking-widest opacity-70">6. References</span></li>
+                    <li><a href="integrations.html" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 hover:bg-indigo-50/80 hover:text-indigo-600 border-left border-transparent">Client Integrations</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="flex-1 lg:ml-72 p-6 md:py-10 md:px-12 max-w-4xl xl:max-w-6xl">
+            <!-- White Content Card with Glass Effect -->
+            <div class="glass-panel rounded-[2rem] shadow-glass p-8 md:p-14 mb-10 relative overflow-hidden transition-all duration-500 hover:shadow-2xl">
+                <!-- Background Decoration -->
+                <div class="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-indigo-100/50 via-purple-50/30 to-transparent rounded-bl-[100px] pointer-events-none -z-0"></div>
+                <div class="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-sky-100/40 to-transparent rounded-tr-[100px] pointer-events-none -z-0"></div>
+                
+                <!-- Content injected here (raised z-index) -->
+                <div class="relative z-10 prose prose-slate prose-indigo max-w-none">
+                    <h1 class="text-4xl font-extrabold text-gray-900 mb-4">Audit Trails & Tenant Metering</h1>
+<p class="text-lg text-gray-600 mb-8">Maintain strict compliance and automatically track API consumption rates for multi-tenant applications.</p>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">The `@Audited` Engine (Dual Layer)</h2>
+    <p class="mb-4">By tagging an entity with <code>@Audited</code> inside your <code>GDL</code> file, GO-DUCK injects an advanced two-tier auditing strategy automatically into your microservice.</p>
+    
+    <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6 rounded-r">
+        <p class="text-indigo-900"><strong>Note:</strong> All Audit Logs are automatically driven completely via Keycloak JWT Token Extraction!</p>
+    </div>
+
+    <h3 class="font-semibold mb-2 mt-6">Layer 1: Inline Entity Columns</h3>
+    <p class="mb-4 text-gray-700">Instead of generic <code>created_at</code> and <code>updated_at</code> timestamps, an <code>@Audited</code> object inherently gains these columns directly on the database row:</p>
+    <ul class="list-disc pl-6 space-y-2 mb-4 text-gray-700 font-mono text-sm bg-gray-100 p-4 rounded">
+        <li>created_by (String - e.g., "John Doe")</li>
+        <li>created_date (TIMESTAMP)</li>
+        <li>last_modified_by (String - e.g., "Jane Doe")</li>
+        <li>last_modified_date (TIMESTAMP)</li>
+        <li>last_modified_user_id (String - Global Auth Provider UUID)</li>
+    </ul>
+
+    <h3 class="font-semibold mb-2 mt-8">Layer 2: The Central `audit_log` Tracker Table</h3>
+    <p class="mb-4 text-gray-700">A global <code>audit_log</code> timeline is maintained across your database. For every mutable Action (CREATE, UPDATE, DELETE), the middleware diffs the pre-mutation HTTP object and the post-mutation object. It stores the explicit JSON payload changes asynchronously!</p>
+    <pre><code class="language-bash"># Quickly view all changes securely over REST 
+curl -X GET "http://localhost:8080/api/audit?entityName=Entity" \
+  -H "Authorization: Bearer YOUR_JWT"
+</code></pre>
+</section>
+
+<section class="mb-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Multi-Tenant Metering</h2>
+    <p class="mb-4">API consumption tracking is inherently built in. When fully enabled, this records usage hits explicitly tracked against the <code>X-Tenant-ID</code> attached to the requests over time. This metric is ideal for setting up a usage-based billing logic or preventing internal abuse.</p>
+    
+    <pre><code class="language-bash"># The Tenant retrieves their own API request footprints:
+curl -X GET "http://localhost:8080/api/metering/usage" \
+  -H "Authorization: Bearer YOUR_JWT" \
+  -H "X-Tenant-ID: tenant_B_stripe"
+</code></pre>
+</section>
+
+                </div>
+            </div>
+            
+            <footer class="mt-12 text-center text-slate-500 text-sm mb-12 flex flex-col justify-center items-center space-y-4">
+                <div class="flex items-center space-x-2 bg-white/60 px-6 py-3 rounded-full shadow-sm border border-slate-200/60 backdrop-blur-sm">
+                    <span>Constructed with</span>
+                    <span class="text-xl animate-bounce">🦆</span>
+                    <span>by <strong class="text-indigo-900 font-bold bg-indigo-100/50 px-2 py-0.5 rounded-md">GO-DUCK CLI</strong></span>
+                </div>
+            </footer>
+        </main>
+    </div>
+    
+    <!-- Lightbox Overlay -->
+    <div id="lightbox" class="fixed inset-0 bg-slate-900/95 backdrop-blur-md z-[100] hidden flex items-center justify-center p-4 md:p-10 cursor-zoom-out transition-all duration-300 opacity-0" onclick="closeLightbox()">
+        <div class="relative max-w-6xl w-full h-full flex flex-col items-center justify-center transform scale-95 transition-transform duration-300" id="lightbox-content">
+            <img id="lightbox-img" src="" alt="Enlarged View" class="max-w-full max-h-full object-contain rounded-2xl shadow-2xl ring-1 ring-white/10">
+            <button class="absolute top-4 right-4 m-4 text-white/70 hover:text-white bg-black/20 hover:bg-black/40 rounded-full p-2 transition-all p-3" onclick="closeLightbox(event)">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function openLightbox(src) {
+            const lb = document.getElementById('lightbox');
+            const content = document.getElementById('lightbox-content');
+            const img = document.getElementById('lightbox-img');
+            img.src = src;
+            lb.classList.remove('hidden');
+            // Trigger reflow
+            void lb.offsetWidth;
+            lb.classList.remove('opacity-0');
+            lb.classList.add('opacity-100');
+            content.classList.remove('scale-95');
+            content.classList.add('scale-100');
+        }
+        
+        function closeLightbox(e) {
+            if (e) e.stopPropagation();
+            const lb = document.getElementById('lightbox');
+            const content = document.getElementById('lightbox-content');
+            lb.classList.remove('opacity-100');
+            lb.classList.add('opacity-0');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                lb.classList.add('hidden');
+            }, 300);
+        }
+        
+        // Add scroll effect to navbar
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('nav');
+            if (window.scrollY > 10) {
+                nav.classList.add('shadow-md');
+                nav.style.background = 'rgba(15, 23, 42, 0.95)';
+            } else {
+                nav.classList.remove('shadow-md');
+                nav.style.background = 'rgba(15, 23, 42, 0.85)';
+            }
+        });
+    </script>
+</body>
+</html>
