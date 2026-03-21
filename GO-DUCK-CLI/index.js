@@ -268,13 +268,36 @@ const getPreviousEntities = async (outputDir) => {
     return entities;
 };
 
-const generateEntities = async (gdlFilePath, outputDir, config) => {
-    if (!await fs.pathExists(gdlFilePath)) {
-        console.error(chalk.red(`❌ GDL file not found: ${gdlFilePath}`));
+const generateEntities = async (gdlPath, outputDir, config) => {
+    if (!await fs.pathExists(gdlPath)) {
+        console.error(chalk.red(`❌ GDL path not found: ${gdlPath}`));
         return null;
     }
 
-    const { entities, relationships, enums, openEntities } = await parseGDL(gdlFilePath);
+    let entities = [];
+    let relationships = [];
+    let enums = [];
+    let openEntities = [];
+
+    const stats = await fs.stat(gdlPath);
+    const files = stats.isDirectory() 
+        ? (await fs.readdir(gdlPath)).filter(f => f.endsWith('.gdl')).map(f => path.join(gdlPath, f))
+        : [gdlPath];
+
+    console.log(chalk.blue(`📂 Loading ${files.length} GDL file(s)...`));
+
+    for (const file of files) {
+        const result = await parseGDL(file);
+        entities = [...entities, ...result.entities];
+        relationships = [...relationships, ...result.relationships];
+        enums = [...enums, ...result.enums];
+        openEntities = [...openEntities, ...result.openEntities];
+    }
+
+    // Deduplicate entities and enums by name
+    entities = Array.from(new Map(entities.map(e => [e.name, e])).values());
+    enums = Array.from(new Map(enums.map(e => [e.name, e])).values());
+
     console.log(chalk.green(`✅ Parsed ${entities.length} entities, ${relationships.length} relationships, ${enums.length} enums, and detected ${openEntities.length} open rules`));
 
     const previousEntities = await getPreviousEntities(outputDir);
@@ -392,7 +415,7 @@ program
         await generateTelemetryCode(config, absoluteOutputDir);
         await generateDeploymentArtifacts(config, absoluteOutputDir);
         await generateYAMLConfigs(config, absoluteOutputDir);
-        const { entities, relationships, enums, openEntities } = await generateEntities(path.join(path.resolve(process.cwd(), gdlDir), 'app.gdl'), absoluteOutputDir, config);
+        const { entities, relationships, enums, openEntities } = await generateEntities(path.resolve(process.cwd(), gdlDir), absoluteOutputDir, config);
         await generateKratosCode(entities, absoluteOutputDir, config.name, enums);
 
         await generateRepositoryCode(absoluteOutputDir);
@@ -457,12 +480,12 @@ require (
     });
 
 program
-    .command('import-gdl <file>')
-    .description('Import entities from a GDL file into an existing app')
+    .command('import-gdl <path>')
+    .description('Import entities from a GDL file or directory into an existing app')
     .option('-o, --output <path>', 'Path to the existing app root', '.')
-    .action(async (file, options) => {
+    .action(async (gdlPath, options) => {
         const absoluteOutputDir = path.resolve(process.cwd(), options.output);
-        console.log(chalk.blue(`📥 Importing GDL from ${file}...`));
+        console.log(chalk.blue(`📥 Importing GDL from ${gdlPath}...`));
 
         const config = await loadConfig(path.resolve(process.cwd(), '../CONFIG/config.yaml'));
 
@@ -485,7 +508,7 @@ program
         await generateResilienceCode(config, absoluteOutputDir);
         await generateTelemetryCode(config, absoluteOutputDir);
         await generateDeploymentArtifacts(config, absoluteOutputDir);
-        const { entities, relationships, enums, openEntities } = await generateEntities(path.resolve(process.cwd(), file), absoluteOutputDir, config);
+        const { entities, relationships, enums, openEntities } = await generateEntities(gdlPath, absoluteOutputDir, config);
         await generateKratosCode(entities, absoluteOutputDir, config.name, enums);
 
         await generateRepositoryCode(absoluteOutputDir);

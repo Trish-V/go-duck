@@ -28,7 +28,7 @@ export const generateDeploymentArtifacts = async (config, outputDir) => {
     // --- 1. Dockerfile (Multi-stage, lean production image) ---
     const dockerfile = `
 # ---- Build Stage ----
-FROM golang:1.22-alpine AS builder
+FROM golang:1.23-alpine AS builder
 WORKDIR /app
 
 # Install dependencies for protoc and Kratos

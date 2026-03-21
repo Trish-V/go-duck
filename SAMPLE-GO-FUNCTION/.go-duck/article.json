@@ -1,41 +1,34 @@
 {
-  "name": "Person",
+  "name": "Article",
+  "annotation": "@Audited",
   "fields": [
     {
-      "name": "firstName",
+      "name": "title",
       "type": "String",
       "required": true,
-      "unique": false,
-      "isEnum": false,
-      "varcharSize": 255
-    },
-    {
-      "name": "lastName",
-      "type": "String",
-      "required": false,
-      "unique": false,
-      "isEnum": false,
-      "varcharSize": 255
-    },
-    {
-      "name": "email",
-      "type": "String",
-      "required": false,
       "unique": true,
       "isEnum": false,
       "varcharSize": 255
     },
     {
-      "name": "age",
-      "type": "Integer",
-      "required": false,
+      "name": "content",
+      "type": "Text",
+      "required": true,
       "unique": false,
       "isEnum": false,
       "varcharSize": null
     },
     {
-      "name": "preferences",
-      "type": "JSON",
+      "name": "status",
+      "type": "ArticleStatus",
+      "required": true,
+      "unique": false,
+      "isEnum": true,
+      "varcharSize": null
+    },
+    {
+      "name": "publishedDate",
+      "type": "LocalDate",
       "required": false,
       "unique": false,
       "isEnum": false,
@@ -46,12 +39,12 @@
     {
       "type": "OneToMany",
       "from": {
-        "entity": "Person",
-        "field": "car"
+        "entity": "Author",
+        "field": "article"
       },
       "to": {
-        "entity": "Car",
-        "field": "owner"
+        "entity": "Article",
+        "field": "author"
       },
       "required": true
     }

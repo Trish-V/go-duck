@@ -66,5 +66,14 @@
     }
   ],
   "app_name": "go-duck",
-  "enums": []
+  "enums": [
+    {
+      "name": "ArticleStatus",
+      "values": [
+        "DRAFT",
+        "PUBLISHED",
+        "ARCHIVED"
+      ]
+    }
+  ]
 }

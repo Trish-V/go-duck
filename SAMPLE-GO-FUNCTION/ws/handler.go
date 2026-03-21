@@ -126,6 +126,22 @@ func (d *RESToverWSDispatcher) dispatch(ctx context.Context, conn *websocket.Con
 		d.sendResponse(conn, msg.Action, listPerson, tp)
     case "CREATE_PERSON":
         d.sendResponse(conn, msg.Action, "Person creation processing...", tp)
+    
+	case "GET_ARTICLES":
+		var listArticle []map[string]interface{}
+		// Note: In a production app, we'd use gorm statement timeout and tracing hooks
+		d.DB.WithContext(ctx).Table("article").Find(&listArticle)
+		d.sendResponse(conn, msg.Action, listArticle, tp)
+    case "CREATE_ARTICLE":
+        d.sendResponse(conn, msg.Action, "Article creation processing...", tp)
+    
+	case "GET_AUTHORS":
+		var listAuthor []map[string]interface{}
+		// Note: In a production app, we'd use gorm statement timeout and tracing hooks
+		d.DB.WithContext(ctx).Table("author").Find(&listAuthor)
+		d.sendResponse(conn, msg.Action, listAuthor, tp)
+    case "CREATE_AUTHOR":
+        d.sendResponse(conn, msg.Action, "Author creation processing...", tp)
     default:
 		d.sendError(conn, "Unknown action", msg.Action, tp)
 	}

@@ -5,7 +5,7 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
     
-    <changeSet id="car-create-20260321030835" author="go-duck">
+    <changeSet id="car-create-20260321034832" author="go-duck">
         <preConditions onFail="MARK_RAN"><not><tableExists tableName="car"/></not></preConditions>
         <createTable tableName="car">
             
@@ -38,7 +38,7 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="person-create-20260321030835" author="go-duck">
+    <changeSet id="person-create-20260321034832" author="go-duck">
         <preConditions onFail="MARK_RAN"><not><tableExists tableName="person"/></not></preConditions>
         <createTable tableName="person">
             
@@ -65,7 +65,7 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="rel-person-car-20260321030835" author="go-duck">
+    <changeSet id="rel-person-car-20260321034832" author="go-duck">
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="car" columnName="owner_id"/>
@@ -78,7 +78,7 @@
         </addColumn>
     </changeSet>
 
-    <changeSet id="idx-idx_car_owner_id-20260321030835" author="go-duck">
+    <changeSet id="idx-idx_car_owner_id-20260321034832" author="go-duck">
         <preConditions onFail="MARK_RAN">
             <not><indexExists indexName="idx_car_owner_id"/></not>
         </preConditions>

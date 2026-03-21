@@ -158,6 +158,10 @@ if appConfig.GoDuck.Multitenancy.Enabled {
     personOpenCtrl := controllers.PersonController{DB: masterDB, Config: appConfig}
     openApi.GET("/persons", personOpenCtrl.GetAll)
     openApi.GET("/persons/:id", personOpenCtrl.GetByID)
+    // Article Public Routes
+    articleOpenCtrl := controllers.ArticleController{DB: masterDB, Config: appConfig}
+    // Author Public Routes
+    authorOpenCtrl := controllers.AuthorController{DB: masterDB, Config: appConfig}
 }
 
 // 9. Secured Application APIs
@@ -201,6 +205,28 @@ api.PUT("/persons/bulk", personCtrl.BulkUpdate)
 api.PATCH("/persons/:id", personCtrl.Patch)
 api.PATCH("/persons/bulk", personCtrl.BulkPatch)
 api.DELETE("/persons/:id", personCtrl.Delete)
+// Article Routes
+articleCtrl := controllers.ArticleController{DB: masterDB, Config: appConfig}
+api.POST("/articles", articleCtrl.Create)
+api.POST("/articles/bulk", articleCtrl.BulkCreate)
+api.GET("/articles", articleCtrl.GetAll)
+api.GET("/articles/:id", articleCtrl.GetByID)
+api.PUT("/articles/:id", articleCtrl.Update)
+api.PUT("/articles/bulk", articleCtrl.BulkUpdate)
+api.PATCH("/articles/:id", articleCtrl.Patch)
+api.PATCH("/articles/bulk", articleCtrl.BulkPatch)
+api.DELETE("/articles/:id", articleCtrl.Delete)
+// Author Routes
+authorCtrl := controllers.AuthorController{DB: masterDB, Config: appConfig}
+api.POST("/authors", authorCtrl.Create)
+api.POST("/authors/bulk", authorCtrl.BulkCreate)
+api.GET("/authors", authorCtrl.GetAll)
+api.GET("/authors/:id", authorCtrl.GetByID)
+api.PUT("/authors/:id", authorCtrl.Update)
+api.PUT("/authors/bulk", authorCtrl.BulkUpdate)
+api.PATCH("/authors/:id", authorCtrl.Patch)
+api.PATCH("/authors/bulk", authorCtrl.BulkPatch)
+api.DELETE("/authors/:id", authorCtrl.Delete)
 // go-duck-needle-add-route
 }
 

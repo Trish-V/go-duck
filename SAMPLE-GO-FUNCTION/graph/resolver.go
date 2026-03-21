@@ -61,3 +61,33 @@ return nil, err
 }
 return list, nil
 }
+func ResolveArticle(db *gorm.DB, id uint) (*models.Article, error) {
+var e models.Article
+if err := db.First(&e, id).Error; err != nil {
+return nil, err
+}
+return &e, nil
+}
+
+func ResolveAllArticles(db *gorm.DB) ([]models.Article, error) {
+var list []models.Article
+if err := db.Find(&list).Error; err != nil {
+return nil, err
+}
+return list, nil
+}
+func ResolveAuthor(db *gorm.DB, id uint) (*models.Author, error) {
+var e models.Author
+if err := db.First(&e, id).Error; err != nil {
+return nil, err
+}
+return &e, nil
+}
+
+func ResolveAllAuthors(db *gorm.DB) ([]models.Author, error) {
+var list []models.Author
+if err := db.Find(&list).Error; err != nil {
+return nil, err
+}
+return list, nil
+}
