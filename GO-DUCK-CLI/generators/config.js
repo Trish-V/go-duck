@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/spf13/viper"
+	"strings"
 )
 
 type Config struct {
@@ -149,6 +150,9 @@ func LoadConfig() (*Config, error) {
 	v.SetDefault("go-duck.resilience.circuit-breaker.enabled", true)
 	v.SetDefault("go-duck.resilience.circuit-breaker.failure-threshold", 5)
 	v.SetDefault("go-duck.resilience.circuit-breaker.timeout", "60s")
+
+	v.AutomaticEnv()
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 
 	if err := v.ReadInConfig(); err != nil {
 		return nil, err

@@ -14,6 +14,7 @@ import (
 "go-duck/management"
 "go-duck/middleware"
 "go-duck/controllers"
+"go-duck/migrations"
 "go-duck/graph"
 "go-duck/ws"
 "go-duck/config"
@@ -71,8 +72,14 @@ sqlDB.SetMaxOpenConns(appConfig.GoDuck.Datasource.MaxOpenConns)
 sqlDB.SetMaxIdleConns(appConfig.GoDuck.Datasource.MaxIdleConns)
 sqlDB.SetConnMaxLifetime(appConfig.GoDuck.Datasource.ConnMaxLifetime)
 
-// 8. Initialize Repository
+// 7. Initialize Repository
 repo := repository.NewRepository(masterDB)
+
+// 7.5 Run Goose Migrations (The Modern Go-Native Way)
+if err := migrations.RunGoNativeMigrations(masterDB); err != nil {
+	logger.Error("Goose Migration failed: %v", err)
+}
+
 // go-duck-needle-add-init-repository
 
 // 9. Initialize & Start Kratos gRPC Server (in background)

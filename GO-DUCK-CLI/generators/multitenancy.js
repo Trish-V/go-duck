@@ -1,8 +1,14 @@
 import fs from 'fs-extra';
 import path from 'path';
 import chalk from 'chalk';
+import Handlebars from 'handlebars';
 
-export const generateMultitenancy = async (config, outputDir) => {
+Handlebars.registerHelper('capitalize', (str) => {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+});
+
+export const generateMultitenancy = async (config, outputDir, entities = []) => {
 
 	const multitenancyTemplate = `
 package middleware
@@ -157,8 +163,9 @@ package management
 import (
 	"fmt"
 	"net/http"
-	"os/exec"
 	"{{app_name}}/config"
+	"{{app_name}}/middleware"
+	"{{app_name}}/migrations"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -191,43 +198,49 @@ func CreateDatabaseAndMigrate(masterDB *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		// 3. Start Liquibase Migration for the new tenant
-		appConfig, _ := config.LoadConfig()
-		ds := appConfig.GoDuck.Datasource
+		// 3. Run Goose Migrations for the new tenant
+		fmt.Printf("Migrating new tenant DB: %s using Goose\\n", req.DBName)
 		
-		// Construct JDBC URL for the new database
-		jdbcUrl := fmt.Sprintf("jdbc:postgresql://%s:%d/%s", ds.Host, ds.Port, req.DBName)
-		
-		fmt.Printf("Migrating new tenant DB: %s\\n", req.DBName)
-		
-		cmd := exec.Command("liquibase", 
-			"--url=" + jdbcUrl, 
-			"--username=" + ds.Username, 
-			"--password=" + ds.Password, 
-			"--changeLogFile=migrations/master.xml", 
-			"update")
-		
-		if err := cmd.Run(); err != nil {
-			fmt.Printf("Liquibase Error: %v\\n", err)
-			// We don't fail the whole request because the DB is created, 
-			// but we warn the admin.
-			c.JSON(http.StatusOK, gin.H{"message": "Database created but migration failed to auto-start. Please run manually.", "error": err.Error()})
-			return
-		}
+        // Get the connection we just opened
+        appConfig, _ := config.LoadConfig()
+		mgr := middleware.GetTenantManager(masterDB, appConfig)
+        tenantDB, err := mgr.GetDB(req.DBName)
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to connect to new tenant DB: " + err.Error()})
+            return
+        }
+
+        if err := migrations.RunGoNativeMigrationsForTenant(tenantDB); err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Tenant migration failed: " + err.Error()})
+            return
+        }
 
 		c.JSON(http.StatusOK, gin.H{"message": "Database created, role mapped, and migration completed for " + req.Role})
 	}
 }
 `;
 
+	const tenantRoleModel = `
+package models
+
+type TenantRole struct {
+	ID       uint    \`gorm:"primaryKey" json:"id"\`
+	RoleName string  \`json:"roleName" gorm:"unique;not null"\`
+	DBName   string  \`json:"dbName" gorm:"not null"\`
+}
+`;
+
 	const middlewarePath = path.join(outputDir, 'middleware/tenant_middleware.go');
 	const dbApiPath = path.join(outputDir, 'management/db_controller.go');
+    const tenantModelPath = path.join(outputDir, 'models/tenant_role.go');
 
 	await fs.ensureDir(path.join(outputDir, 'middleware'));
 	await fs.ensureDir(path.join(outputDir, 'management'));
+    await fs.ensureDir(path.join(outputDir, 'models'));
 
-	await fs.writeFile(middlewarePath, multitenancyTemplate.replace(/{{app_name}}/g, config.name));
-	await fs.writeFile(dbApiPath, dbApiTemplate.replace(/{{app_name}}/g, config.name));
+	await fs.writeFile(middlewarePath, Handlebars.compile(multitenancyTemplate)({ app_name: config.name, entities }));
+	await fs.writeFile(dbApiPath, Handlebars.compile(dbApiTemplate)({ app_name: config.name, entities }));
+    await fs.writeFile(tenantModelPath, tenantRoleModel);
 
 	console.log(chalk.gray('  Generated Multitenancy Middleware & Management API'));
 };

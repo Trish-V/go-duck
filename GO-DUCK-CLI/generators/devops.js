@@ -28,7 +28,7 @@ export const generateDeploymentArtifacts = async (config, outputDir) => {
     // --- 1. Dockerfile (Multi-stage, lean production image) ---
     const dockerfile = `
 # ---- Build Stage ----
-FROM golang:1.24-alpine AS builder
+FROM golang:alpine AS builder
 WORKDIR /app
 
 # Install dependencies for protoc and Kratos
@@ -51,15 +51,14 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
 
-# Generate gRPC and HTTP client/server code from Proto files
-# We use find to generate for each found proto to be sure it is generated
-RUN find api -name "*.proto" -exec protoc --proto_path=. \\
-        --proto_path=./api \\
-        --proto_path=./third_party \\
-        --proto_path=/usr/include \\
-        --go_out=paths=source_relative:. \\
-        --go-grpc_out=paths=source_relative:. \\
-        --go-http_out=paths=source_relative:. \\
+# Generate gRPC and HTTP client/server code
+RUN find api -name "*.proto" -exec protoc --proto_path=. \
+        --proto_path=./api \
+        --proto_path=./third_party \
+        --proto_path=/usr/include \
+        --go_out=paths=source_relative:. \
+        --go-grpc_out=paths=source_relative:. \
+        --go-http_out=paths=source_relative:. \
         {} +
 
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/server .
@@ -67,10 +66,12 @@ RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/server .
 # ---- Final Stage ----
 FROM gcr.io/distroless/static-debian12
 WORKDIR /app
+
 COPY --from=builder /app/server .
 COPY --from=builder /app/application.yml .
 COPY --from=builder /app/application-dev.yml .
 COPY --from=builder /app/application-prod.yml .
+
 EXPOSE ${appPort}
 ENV GO_PROFILE=prod
 ENTRYPOINT ["/app/server"]
@@ -88,6 +89,14 @@ services:
       - "${appPort}:${appPort}"
     environment:
       - GO_PROFILE=dev
+      - GO_DUCK_DATASOURCE_HOST=postgres
+      - GO_DUCK_DATASOURCE_USERNAME=go_duck_user
+      - GO_DUCK_DATASOURCE_PASSWORD=go_duck_pass
+      - GO_DUCK_DATASOURCE_DATABASE=go_duck_master
+      - GO_DUCK_DATASOURCE_PORT=5432
+      - GO_DUCK_CACHE_REDIS_HOST=redis:6379
+      - GO_DUCK_MESSAGING_MQTT_BROKER=tcp://mosquitto:1883
+      - GO_DUCK_TELEMETRY_OTEL_ENDPOINT=otel-collector:4317
     depends_on:
       - postgres
       - redis
@@ -102,7 +111,7 @@ services:
     environment:
       POSTGRES_USER: go_duck_user
       POSTGRES_PASSWORD: go_duck_pass
-      POSTGRES_DB: ${appName}
+      POSTGRES_DB: go_duck_master
     ports:
       - "5432:5432"
     volumes:

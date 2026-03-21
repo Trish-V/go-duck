@@ -9,6 +9,14 @@ services:
       - "8080:8080"
     environment:
       - GO_PROFILE=dev
+      - GO_DUCK_DATASOURCE_HOST=postgres
+      - GO_DUCK_DATASOURCE_USERNAME=go_duck_user
+      - GO_DUCK_DATASOURCE_PASSWORD=go_duck_pass
+      - GO_DUCK_DATASOURCE_DATABASE=go_duck_master
+      - GO_DUCK_DATASOURCE_PORT=5432
+      - GO_DUCK_CACHE_REDIS_HOST=redis:6379
+      - GO_DUCK_MESSAGING_MQTT_BROKER=tcp://mosquitto:1883
+      - GO_DUCK_TELEMETRY_OTEL_ENDPOINT=otel-collector:4317
     depends_on:
       - postgres
       - redis
@@ -23,7 +31,7 @@ services:
     environment:
       POSTGRES_USER: go_duck_user
       POSTGRES_PASSWORD: go_duck_pass
-      POSTGRES_DB: go-duck
+      POSTGRES_DB: go_duck_master
     ports:
       - "5432:5432"
     volumes:

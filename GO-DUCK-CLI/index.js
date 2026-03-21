@@ -426,9 +426,17 @@ program
         await generateKratosCode(entities, absoluteOutputDir, config.name, enums);
 
         await generateRepositoryCode(absoluteOutputDir);
+        
+        {
+            const migratorTemplatePath = path.resolve(path.dirname(import.meta.url.replace('file://', '')), 'templates/go/migrator.go.hbs');
+            if (await fs.pathExists(migratorTemplatePath)) {
+                const migratorTemplate = Handlebars.compile(await fs.readFile(migratorTemplatePath, 'utf8'));
+                await fs.writeFile(path.join(absoluteOutputDir, 'migrations/migrations.go'), migratorTemplate({ app_name: config.name }));
+            }
+        }
 
         await generateGraphQLCode(config, entities, relationships, absoluteOutputDir, enums);
-        if (config.multitenancy?.enabled) await generateMultitenancy(config, absoluteOutputDir);
+        if (config.multitenancy?.enabled) await generateMultitenancy(config, absoluteOutputDir, entities);
         await generateAuditCode(config, absoluteOutputDir);
         await generateMeteringCode(config, absoluteOutputDir);
         await generateSecurityMiddleware(config, absoluteOutputDir);
@@ -456,7 +464,7 @@ program
         // 10. Generate go.mod
         const goModContent = `module ${config.name}
 
-go 1.22
+go 1.24
 
 require (
 	github.com/gin-gonic/gin v1.10.0
@@ -547,10 +555,11 @@ program
         await generateDocumentation(config, entities, absoluteOutputDir, enums, openEntities);
 
         // Regenerate main.go to include new routes if any (or just entities)
+        const timestamp = new Date().toISOString().replace(/[-:T]/g, '').split('.')[0];
         const mainTemplatePath = path.resolve(path.dirname(import.meta.url.replace('file://', '')), 'templates/go/main.go.hbs');
         if (await fs.pathExists(mainTemplatePath)) {
             const mainTemplate = Handlebars.compile(await fs.readFile(mainTemplatePath, 'utf8'));
-            await fs.writeFile(path.join(absoluteOutputDir, 'main.go'), mainTemplate({ app_name: config.name, entities, openEntities }));
+            await fs.writeFile(path.join(absoluteOutputDir, 'main.go'), mainTemplate({ app_name: config.name, entities, openEntities, timestamp }));
             console.log(chalk.green('✅ Updated main.go to register new entity routes.'));
         }
 
