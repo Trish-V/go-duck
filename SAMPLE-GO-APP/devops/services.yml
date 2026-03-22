@@ -1,0 +1,79 @@
+
+services:
+  postgres:
+    image: postgres:15.6-alpine
+    container_name: go-duck-postgres
+    environment:
+      POSTGRES_USER: go_duck_user
+      POSTGRES_PASSWORD: go_duck_pass
+      POSTGRES_DB: go_duck_master
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - go-duck-net
+
+  redis:
+    image: redis:7.2.4-alpine
+    container_name: go-duck-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --save 60 1 --loglevel warning
+    networks:
+      - go-duck-net
+
+  mosquitto:
+    image: eclipse-mosquitto:2.0.18
+    container_name: go-duck-mqtt
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./k8s/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    networks:
+      - go-duck-net
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.96.0
+    container_name: go-duck-otel
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./k8s/otel-collector.yml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    depends_on:
+      - jaeger
+    networks:
+      - go-duck-net
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.55
+    container_name: go-duck-jaeger
+    ports:
+      - "16686:16686"
+      - "14317:4317"
+    networks:
+      - go-duck-net
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0.7
+    container_name: go-duck-keycloak
+    command: start-dev --import-realm
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    volumes:
+      - ./keycloak/realm-config:/opt/keycloak/data/import
+    ports:
+      - "8180:8080"
+    networks:
+      - go-duck-net
+
+volumes:
+  postgres_data:
+
+networks:
+  go-duck-net:
+    driver: bridge

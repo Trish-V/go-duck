@@ -1,12 +1,10 @@
 
-include:
-  - path: services.yml
-
 services:
   app:
     build:
       context: ..
       dockerfile: devops/Dockerfile
+    image: go-duck:latest
     container_name: go-duck
     ports:
       - "8080:8080"
@@ -20,15 +18,7 @@ services:
       - GO_DUCK_CACHE_REDIS_HOST=redis:6379
       - GO_DUCK_MESSAGING_MQTT_BROKER=tcp://mosquitto:1883
       - GO_DUCK_TELEMETRY_OTEL_ENDPOINT=otel-collector:4317
-    depends_on:
-      postgres:
-        condition: service_started
-      redis:
-        condition: service_started
-      mosquitto:
-        condition: service_started
-      otel-collector:
-        condition: service_started
+    restart: always
     networks:
       - go-duck-net
 

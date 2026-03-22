@@ -158,6 +158,13 @@ func LoadConfig() (*Config, error) {
 		return nil, err
 	}
 
+	// Force Viper to bind environment variables for all nested keys found in the config file.
+	// This fixes the issue where Viper's Unmarshal ignores env vars for nested structs.
+	for _, key := range v.AllKeys() {
+		envKey := strings.ToUpper(strings.ReplaceAll(strings.ReplaceAll(key, ".", "_"), "-", "_"))
+		v.BindEnv(key, envKey)
+	}
+
 	var config Config
 	if err := v.Unmarshal(&config); err != nil {
 		return nil, err

@@ -2,28 +2,19 @@ import fs from 'fs-extra';
 import path from 'path';
 import chalk from 'chalk';
 
-export const generateDeploymentArtifacts = async (config, outputDir) => {
-    const devopsDir = path.join(outputDir, 'devops');
+export const generateDeploymentArtifacts = async (config, projectRootDir) => {
+    const devopsDir = path.join(projectRootDir, 'devops');
     const k8sDir = path.join(devopsDir, 'k8s');
     const keycloakDir = path.join(devopsDir, 'keycloak');
-    const realmConfigDir = path.join(keycloakDir, 'realm-config');
-    const githubDir = path.join(outputDir, '.github/workflows');
+    const githubDir = path.join(projectRootDir, '.github', 'workflows');
 
     await fs.ensureDir(devopsDir);
     await fs.ensureDir(k8sDir);
     await fs.ensureDir(keycloakDir);
-    await fs.ensureDir(realmConfigDir);
     await fs.ensureDir(githubDir);
 
-    const appName = config.name || 'go-duck-app';
-    const appPort = 8080;
-
-    // --- Copy Keycloak Realm Template ---
-    const cliRootDir = path.resolve(path.dirname(import.meta.url.replace('file://', '')), '../../');
-    const realmTemplatePath = path.join(cliRootDir, 'realm-export-template.json');
-    if (await fs.pathExists(realmTemplatePath)) {
-        await fs.copy(realmTemplatePath, path.join(realmConfigDir, 'realm-export.json'));
-    }
+    const appName = config.name || 'go-duck';
+    const appPort = config.server?.port || 8080;
 
     // --- 1. Dockerfile (Multi-stage, lean production image) ---
     const dockerfile = `
@@ -43,8 +34,8 @@ RUN go install github.com/go-kratos/kratos/cmd/protoc-gen-go-errors/v2@latest
 RUN go install github.com/google/gnostic/cmd/protoc-gen-openapi@latest
 
 # Download standard google protos
-RUN mkdir -p third_party/google/api && \
-    curl -sSL https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/annotations.proto > third_party/google/api/annotations.proto && \
+RUN mkdir -p third_party/google/api && \\
+    curl -sSL https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/annotations.proto > third_party/google/api/annotations.proto && \\
     curl -sSL https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/http.proto > third_party/google/api/http.proto
 
 COPY go.mod go.sum ./
@@ -52,13 +43,13 @@ RUN go mod download
 COPY . .
 
 # Generate gRPC and HTTP client/server code
-RUN find api -name "*.proto" -exec protoc --proto_path=. \
-        --proto_path=./api \
-        --proto_path=./third_party \
-        --proto_path=/usr/include \
-        --go_out=paths=source_relative:. \
-        --go-grpc_out=paths=source_relative:. \
-        --go-http_out=paths=source_relative:. \
+RUN find api -name "*.proto" -exec protoc --proto_path=. \\
+        --proto_path=./api \\
+        --proto_path=./third_party \\
+        --proto_path=/usr/include \\
+        --go_out=paths=source_relative:. \\
+        --go-grpc_out=paths=source_relative:. \\
+        --go-http_out=paths=source_relative:. \\
         {} +
 
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/server .
@@ -72,41 +63,16 @@ COPY --from=builder /app/application.yml .
 COPY --from=builder /app/application-dev.yml .
 COPY --from=builder /app/application-prod.yml .
 
-EXPOSE ${appPort}
+EXPOSE 8080
 ENV GO_PROFILE=prod
 ENTRYPOINT ["/app/server"]
 `;
 
-    // --- 2. Docker Compose (Full local dev environment) ---
-    const dockerCompose = `
+    // --- 2. services.yml (Infrastructure Services Only - Hard-Pinned Versions for Docker Desktop Stability) ---
+    const servicesYaml = `
 services:
-  app:
-    build:
-      context: ..
-      dockerfile: devops/Dockerfile
-    container_name: ${appName}
-    ports:
-      - "${appPort}:${appPort}"
-    environment:
-      - GO_PROFILE=dev
-      - GO_DUCK_DATASOURCE_HOST=postgres
-      - GO_DUCK_DATASOURCE_USERNAME=go_duck_user
-      - GO_DUCK_DATASOURCE_PASSWORD=go_duck_pass
-      - GO_DUCK_DATASOURCE_DATABASE=go_duck_master
-      - GO_DUCK_DATASOURCE_PORT=5432
-      - GO_DUCK_CACHE_REDIS_HOST=redis:6379
-      - GO_DUCK_MESSAGING_MQTT_BROKER=tcp://mosquitto:1883
-      - GO_DUCK_TELEMETRY_OTEL_ENDPOINT=otel-collector:4317
-    depends_on:
-      - postgres
-      - redis
-      - mosquitto
-      - otel-collector
-    networks:
-      - go-duck-net
-
   postgres:
-    image: postgres:15-alpine
+    image: postgres:15.6-alpine
     container_name: ${appName}-postgres
     environment:
       POSTGRES_USER: go_duck_user
@@ -114,13 +80,13 @@ services:
       POSTGRES_DB: go_duck_master
     ports:
       - "5432:5432"
-    # volumes:
-    #   - postgres_data:/var/lib/postgresql/data
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - go-duck-net
 
   redis:
-    image: redis:7-alpine
+    image: redis:7.2.4-alpine
     container_name: ${appName}-redis
     ports:
       - "6379:6379"
@@ -129,7 +95,7 @@ services:
       - go-duck-net
 
   mosquitto:
-    image: eclipse-mosquitto:2
+    image: eclipse-mosquitto:2.0.18
     container_name: ${appName}-mqtt
     ports:
       - "1883:1883"
@@ -140,7 +106,7 @@ services:
       - go-duck-net
 
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:latest
+    image: otel/opentelemetry-collector-contrib:0.96.0
     container_name: ${appName}-otel
     command: ["--config=/etc/otel-collector-config.yaml"]
     volumes:
@@ -154,7 +120,7 @@ services:
       - go-duck-net
 
   jaeger:
-    image: jaegertracing/all-in-one:latest
+    image: jaegertracing/all-in-one:1.55
     container_name: ${appName}-jaeger
     ports:
       - "16686:16686"
@@ -163,7 +129,7 @@ services:
       - go-duck-net
 
   keycloak:
-    image: quay.io/keycloak/keycloak:23.0
+    image: quay.io/keycloak/keycloak:23.0.7
     container_name: ${appName}-keycloak
     command: start-dev --import-realm
     environment:
@@ -184,7 +150,79 @@ networks:
     driver: bridge
 `;
 
-    // --- 3. MQTT Broker Config ---
+    // --- 3. app.yml (App Service Only - To run the built image) ---
+    const appYaml = `
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: devops/Dockerfile
+    image: ${appName}:latest
+    container_name: ${appName}
+    ports:
+      - "${appPort}:${appPort}"
+    environment:
+      - GO_PROFILE=dev
+      - GO_DUCK_DATASOURCE_HOST=postgres
+      - GO_DUCK_DATASOURCE_USERNAME=go_duck_user
+      - GO_DUCK_DATASOURCE_PASSWORD=go_duck_pass
+      - GO_DUCK_DATASOURCE_DATABASE=go_duck_master
+      - GO_DUCK_DATASOURCE_PORT=5432
+      - GO_DUCK_CACHE_REDIS_HOST=redis:6379
+      - GO_DUCK_MESSAGING_MQTT_BROKER=tcp://mosquitto:1883
+      - GO_DUCK_TELEMETRY_OTEL_ENDPOINT=otel-collector:4317
+    restart: always
+    networks:
+      - go-duck-net
+
+networks:
+  go-duck-net:
+    external: true
+    name: devops_go-duck-net
+`;
+
+    // --- 4. docker-compose.yml (The Main Entry Point - Links app + services) ---
+    const dockerCompose = `
+include:
+  - path: services.yml
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: devops/Dockerfile
+    container_name: ${appName}
+    ports:
+      - "${appPort}:${appPort}"
+    environment:
+      - GO_PROFILE=dev
+      - GO_DUCK_DATASOURCE_HOST=postgres
+      - GO_DUCK_DATASOURCE_USERNAME=go_duck_user
+      - GO_DUCK_DATASOURCE_PASSWORD=go_duck_pass
+      - GO_DUCK_DATASOURCE_DATABASE=go_duck_master
+      - GO_DUCK_DATASOURCE_PORT=5432
+      - GO_DUCK_CACHE_REDIS_HOST=redis:6379
+      - GO_DUCK_MESSAGING_MQTT_BROKER=tcp://mosquitto:1883
+      - GO_DUCK_TELEMETRY_OTEL_ENDPOINT=otel-collector:4317
+    depends_on:
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
+      mosquitto:
+        condition: service_started
+      otel-collector:
+        condition: service_started
+    networks:
+      - go-duck-net
+
+networks:
+  go-duck-net:
+    external: true
+    name: devops_go-duck-net
+`;
+
+    // --- 5. MQTT Broker Config ---
     const mosquittoConf = `
 listener 1883
 listener 9001
@@ -192,7 +230,7 @@ protocol websockets
 allow_anonymous true
 `;
 
-    // --- 4. GitHub Actions CI/CD ---
+    // --- 6. GitHub Actions CI/CD ---
     const ciWorkflow = `
 name: CI - Build & Test
 
@@ -211,7 +249,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: '1.24'
 
       - name: Cache Go modules
         uses: actions/cache@v3
@@ -226,7 +264,7 @@ jobs:
         run: go build -v ./...
 
       - name: Run Tests
-        run: go test -v ./...
+        run: test -v ./...
 `;
 
     const cdWorkflow = `
@@ -257,10 +295,12 @@ jobs:
 `;
 
     await fs.writeFile(path.join(devopsDir, 'Dockerfile'), dockerfile);
+    await fs.writeFile(path.join(devopsDir, 'services.yml'), servicesYaml);
+    await fs.writeFile(path.join(devopsDir, 'app.yml'), appYaml);
     await fs.writeFile(path.join(devopsDir, 'docker-compose.yml'), dockerCompose);
     await fs.writeFile(path.join(k8sDir, 'mosquitto.conf'), mosquittoConf);
     await fs.writeFile(path.join(githubDir, 'ci.yml'), ciWorkflow);
     await fs.writeFile(path.join(githubDir, 'cd.yml'), cdWorkflow);
 
-    console.log(chalk.gray('  Generated devops/Dockerfile, devops/docker-compose.yml & GitHub Actions CI/CD'));
+    console.log(chalk.gray('  Generated devops/Dockerfile, devops/services.yml, devops/app.yml, devops/docker-compose.yml & GitHub Actions CI/CD'));
 };
